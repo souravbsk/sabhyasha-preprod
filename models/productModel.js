@@ -11,16 +11,16 @@ const productModel = new mongoose.Schema({
   },
   category_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "ProductCategory",
+    ref: "productCategory",
   },
   subcategory_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SubCategory",
+    ref: "productSubCategory",
   },
   hsnCode: Number,
   store_address_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Stores",
+    ref: "stores",
   },
   tax_rate: Number,
   image: {
@@ -60,6 +60,7 @@ const productModel = new mongoose.Schema({
   },
   view_count: Number,
   productGalleryImageUrls: [String],
+  customizations: [Object],
   createdAt: {
     type: Date,
     default: Date.now(),
@@ -72,6 +73,11 @@ const productModel = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Admin",
   },
+  status: {
+    type: String,
+    required: true,
+    enum: ["published", "draft"],
+  },
 });
 
 productModel.pre("save", function (next) {
@@ -79,7 +85,7 @@ productModel.pre("save", function (next) {
   next();
 });
 
-const Product = mongoose.model("Product", productModel);
+const Product = mongoose.model("products", productModel, "products");
 
 module.exports = {
   Product,

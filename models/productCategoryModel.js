@@ -14,8 +14,12 @@ const productCategoryModel = new mongoose.Schema({
   },
   selectedFields: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Customization",
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "customizedFileds",
+      },
+      name: String,
+      isRequired: Boolean,
     },
   ],
   updatedAt: {
@@ -27,24 +31,18 @@ const productCategoryModel = new mongoose.Schema({
     ref: "productParentCategory",
     required: true,
   },
-  subCategories: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubCategory",
-    },
-  ],
+
   slug: {
     type: String,
-    required: true,
     unique: true,
   },
 });
 
-categoryModel.pre("save", function (next) {
+productCategoryModel.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-const ProductCategory = mongoose.model("ProductCategory", productCategoryModel);
+const productCategory = mongoose.model("productCategory", productCategoryModel,"productCategory");
 
-module.exports = { ProductCategory };
+module.exports = { productCategory };

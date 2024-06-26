@@ -22,7 +22,7 @@ const subCategoryModel = new mongoose.Schema({
   },
   productCategoryId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "ProductCategory",
+    ref: "productCategory",
     required: true,
   },
   slug: {
@@ -37,6 +37,10 @@ subCategoryModel.pre("save", function (next) {
   next();
 });
 
-const SubCategory = mongoose.model("SubCategory", subCategoryModel);
+const SubCategory = mongoose.model(
+  "productSubCategory",
+  subCategoryModel,
+  "productSubCategory"
+);
 
 module.exports = { SubCategory };

@@ -10,25 +10,29 @@ const customizationModel = new mongoose.Schema({
     enum: ["text", "select"],
     required: true,
   },
-  textValue: {
-    type: String,
-    required: function () {
-      return this.type === "text";
+  options: [
+    {
+      label: {
+        type: String,
+        required: function () {
+          return this.type === "select";
+        },
+      },
+      value: {
+        type: String,
+        required: function () {
+          return this.type === "select";
+        },
+      },
     },
-  },
-  options: {
-    type: [String],
-    required: function () {
-      return this.type === "select";
-    },
-  },
+  ],
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
   },
   updatedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
   },
 });
 
@@ -37,8 +41,13 @@ customizationModel.pre("save", function (next) {
   next();
 });
 
-const Customization = mongoose.model("Customization", customizationModel);
+// const customizedFileds = mongoose.model("customizedFileds", customizationModel);
+const customizedFields = mongoose.model(
+  "customizedFileds",
+  customizationModel,
+  "customizedFileds"
+);
 
 module.exports = {
-  Customization,
+  customizedFields,
 };

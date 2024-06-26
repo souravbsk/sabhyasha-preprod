@@ -28,7 +28,7 @@ storeModel.pre("save", function (next) {
   next();
 });
 
-const Stores = mongoose.model("Stores", storeModel);
+const Stores = mongoose.model("stores", storeModel,"stores");
 
 module.exports = {
     Stores,

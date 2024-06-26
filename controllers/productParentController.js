@@ -101,6 +101,8 @@ const updateParentCategoryById = async (req, res) => {
   }
 };
 
+
+//delete parent category
 const deleteParentCategoryById = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;

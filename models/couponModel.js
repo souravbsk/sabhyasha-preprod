@@ -14,11 +14,11 @@ const couponModel = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Admin",
-    required: true,
-  },
+  // author: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Admin",
+  //   required: true,
+  // },
   usedBy: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,12 +34,12 @@ const couponModel = new mongoose.Schema({
     required: true,
   },
   minCartAmount: Number,
-  discountType: {
+  type: {
     type: String,
     required: true,
     enum: ["percentage", "amount"],
   },
-  discountValue: {
+  discountAmount: {
     type: Number,
     required: true,
   },
@@ -47,7 +47,7 @@ const couponModel = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["active", "inactive"],
+    enum: ["approved", "pending","disapproved"],
   },
 });
 

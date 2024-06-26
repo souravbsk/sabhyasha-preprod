@@ -7,7 +7,7 @@ const blogModel = new mongoose.Schema({
   },
   description: String,
   featureImage: {
-    imageUrl: String,
+    imageURL: String,
     featureImgAlt: String,
     featureImageDescription: String,
   },
@@ -21,7 +21,7 @@ const blogModel = new mongoose.Schema({
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "blogCategories",
+    ref: "categories",
   },
   tags: [String],
   author: {
@@ -36,7 +36,7 @@ blogModel.pre("save", function (next) {
   next();
 });
 
-const blogs = mongoose.model("blogs", blogModel);
+const blogs = mongoose.model("blogs", blogModel, "blogs");
 
 module.exports = {
   blogs,

@@ -49,6 +49,7 @@ const getAllCategories = async (req, res) => {
   try {
     console.log("first");
     const categoriesList = await categories.find({});
+  
     console.log(categoriesList);
 
     if (!categoriesList.length) {
