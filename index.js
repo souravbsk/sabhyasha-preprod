@@ -10,7 +10,7 @@ const { connectDB } = require("./utlis/connectDB");
 const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
-
+// changed cors origin to * for testing
 app.use(
   cors({
     origin: "*",
@@ -51,7 +51,7 @@ const { userAuth } = require("./routes/user.routes");
 
 connectDB();
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.send("Hello World from server");
 });
 //blog api start
 app.use("/api/blog", blogRoute);
