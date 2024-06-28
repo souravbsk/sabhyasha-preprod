@@ -11,7 +11,12 @@ const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.raw({ limit: "10mb" }));
