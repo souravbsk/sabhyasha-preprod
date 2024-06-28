@@ -10,8 +10,17 @@ const userModel = new mongoose.Schema({
   googleId: String,
   shippingAdresses: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ShippingAddress",
+      id: { type: mongoose.Schema.Types.ObjectId, ref: "addreses" },
+      data: {
+        addressType: String,
+        name: String,
+        city: String,
+        slug: String,
+        state: String,
+        zip: String,
+        country: String,
+        address: String,
+      },
     },
   ],
   productsBought: [

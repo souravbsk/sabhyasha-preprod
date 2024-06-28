@@ -48,6 +48,7 @@ const { productCategoryRoute } = require("./routes/productCategory.routes");
 const { storeRoute } = require("./routes/store.routes");
 const { productSubCategoryRoute } = require("./routes/subCategory.routes");
 const { userAuth } = require("./routes/user.routes");
+const { addressRouter } = require("./routes/address.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -67,6 +68,10 @@ app.use("/api/product/subcategory", productSubCategoryRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/store", storeRoute);
 app.use("/api", productRoute);
+
+// address api start
+app.use("/api/address", addressRouter);
+
 // prodcut api end
 
 app.use("/api/auth", userAuth);

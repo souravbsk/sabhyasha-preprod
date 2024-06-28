@@ -6,6 +6,11 @@ const addressSchema = new mongoose.Schema({
     enum: ["shipping", "billing"],
     required: true,
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: true,
+  },
   name: {
     type: String,
   },
@@ -35,6 +40,11 @@ const addressSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
   },
+  slug: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 
 // Pre-save hook to update the updatedAt field
@@ -43,6 +53,6 @@ addressSchema.pre("save", function (next) {
   next();
 });
 
-const Address = mongoose.model("Address", addressSchema);
+const addreses = mongoose.model("addreses", addressSchema);
 
-module.exports = Address;
+module.exports = { addreses };
