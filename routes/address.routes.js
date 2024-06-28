@@ -6,6 +6,6 @@ const {
 const addressRouter = require("express").Router();
 
 addressRouter.post("/:userId", addAddress);
-addressRouter.delete("/:slug", removeAddress);
+addressRouter.delete("/:addressId", removeAddress);
 
 module.exports = { addressRouter };

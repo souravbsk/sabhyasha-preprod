@@ -1,6 +1,5 @@
-const { addreses } = require("../models/AddressModel");
+const { shippingAddress } = require("../models/AddressModel");
 const { users } = require("../models/userModel");
-const { slugGenerator } = require("../utlis/slugGenerate");
 
 const addAddress = async (req, res) => {
   try {
@@ -13,10 +12,13 @@ const addAddress = async (req, res) => {
         .send({ success: false, message: "Missing required fields" });
     }
 
-    const existingSlugs = await addreses.find({}).distinct("slug");
-    const slug = await slugGenerator(address, existingSlugs);
+    if (!["shipping", "billing"].includes(type)) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Invalid address type" });
+    }
 
-    const newAddress = new addreses({
+    const newAddress = new shippingAddress({
       user: userId,
       type,
       name,
@@ -25,13 +27,14 @@ const addAddress = async (req, res) => {
       state,
       zip,
       address,
-      slug,
     });
 
     await newAddress.save();
 
+    const updateField =
+      type === "shipping" ? "shippingAddressIds" : "billingAddressIds";
     await users.findByIdAndUpdate(userId, {
-      $push: { shippingAdresses: { id: newAddress._id, data: newAddress } },
+      $push: { [updateField]: newAddress._id },
     });
 
     res.send({ success: true, data: newAddress });
@@ -43,9 +46,10 @@ const addAddress = async (req, res) => {
 
 const removeAddress = async (req, res) => {
   try {
-    const { slug } = req.params;
+    const { addressId } = req.params;
 
-    const address = await addreses.findOne({ slug });
+    // Find the address by ID
+    const address = await shippingAddress.findById(addressId);
 
     if (!address) {
       return res
@@ -53,11 +57,18 @@ const removeAddress = async (req, res) => {
         .send({ success: false, message: "Address not found" });
     }
 
+    // Determine the correct address field to update based on the address type
+    const updateField =
+      address.type === "shipping" ? "shippingAddressIds" : "billingAddressIds";
+    // Remove the address ID from the user's address list
     await users.findByIdAndUpdate(address.user, {
-      $pull: { shippingAdresses: { id: address._id } },
+      $pull: { [updateField]: address._id },
     });
 
-    await addreses.deleteOne({ slug });
+    console.log(updateField);
+    // Delete the address
+    await address.deleteOne();
+
     res.send({ success: true, message: "Address removed successfully" });
   } catch (error) {
     console.error(error);

@@ -40,11 +40,6 @@ const addressSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
   },
-  slug: {
-    type: String,
-    required: true,
-    unique: true,
-  },
 });
 
 // Pre-save hook to update the updatedAt field
@@ -53,6 +48,6 @@ addressSchema.pre("save", function (next) {
   next();
 });
 
-const addreses = mongoose.model("addreses", addressSchema);
+const shippingAddress = mongoose.model("addresses", addressSchema,"addresses");
 
-module.exports = { addreses };
+module.exports = { shippingAddress };

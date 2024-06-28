@@ -8,19 +8,16 @@ const userModel = new mongoose.Schema({
   mobile: String,
   username: String,
   googleId: String,
-  shippingAdresses: [
+  billingAddressIds: [
     {
-      id: { type: mongoose.Schema.Types.ObjectId, ref: "addreses" },
-      data: {
-        addressType: String,
-        name: String,
-        city: String,
-        slug: String,
-        state: String,
-        zip: String,
-        country: String,
-        address: String,
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "addresses",
+    },
+  ],
+  shippingAddressIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "addresses",
     },
   ],
   productsBought: [
