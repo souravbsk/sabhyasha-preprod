@@ -90,6 +90,10 @@ const getAllSubCategories = async (req, res) => {
 const updateSubCategoryById = async (req, res) => {
   try {
     const subcategoryId = req.params.subcategoryId;
+    if (!subcategoryId) {
+      return res.status(400).json({ error: "Subcategory ID is required" });
+    }
+
     const { name, parentCategoryId, productCategoryId, image } = req.body;
     const updatedAt = new Date();
 
@@ -97,21 +101,25 @@ const updateSubCategoryById = async (req, res) => {
     if (image) {
       imageURL = image;
     } else {
-      await uploadToS3("SubCategory")(req, res);
-      imageURL = req.fileUrls[0];
+      try {
+        await uploadToS3("SubCategory")(req, res);
+        imageURL = req.fileUrls[0];
+      } catch (uploadError) {
+        console.error("Error uploading image:", uploadError);
+        return res.status(500).json({ error: "Error uploading image" });
+      }
     }
+
+    // Build the update object dynamically to avoid overwriting fields with undefined
+    const updateData = { updatedAt };
+    if (name) updateData.name = name;
+    if (parentCategoryId) updateData.parentCategoryId = parentCategoryId;
+    if (productCategoryId) updateData.productCategoryId = productCategoryId;
+    if (imageURL) updateData.image = imageURL;
 
     const result = await SubCategory.findByIdAndUpdate(
       subcategoryId,
-      {
-        $set: {
-          name,
-          updatedAt,
-          parentCategoryId,
-          productCategoryId,
-          image: imageURL,
-        },
-      },
+      { $set: updateData },
       { new: true }
     );
 
@@ -135,9 +143,9 @@ const deleteSubCategoryById = async (req, res) => {
     const subcategoryId = req.params.subcategoryId;
     console.log(subcategoryId);
 
-    const deletedSubCategory = await SubCategory.findByIdAndDelete(
-      subcategoryId
-    );
+    const filter = { _id: new ObjectId(subcategoryId) };
+
+    const deletedSubCategory = await SubCategory.deleteOne(filter);
 
     if (!deletedSubCategory) {
       return res.status(404).json({ error: "Product Category not found" });
@@ -188,6 +196,7 @@ const getAllSubCategoryById = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 module.exports = {
   createSubCategory,
   getAllSubCategories,

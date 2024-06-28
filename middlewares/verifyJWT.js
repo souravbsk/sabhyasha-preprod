@@ -1,15 +1,20 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config({ path: "../.env" });
 
-const verifyJWT = (req, res, next) => {
-  try {
-    const token = req.headers.authorization.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
-    next();
-  } catch (error) {
-    return res.status(401).send({ success: false, message: "Auth failed" });
+exports.verifyJwt = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
   }
-};
+  const token = authorization.split(" ")[1];
 
-module.exports = { verifyJWT };
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    console.log(decoded);
+    if (err) {
+      res.status(401).send({ error: true, message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};

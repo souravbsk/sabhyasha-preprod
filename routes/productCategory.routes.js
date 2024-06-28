@@ -4,6 +4,7 @@ const {
   updateProductCategoryById,
   deleteProductCategoryById,
   getAllProductCategoryById,
+  getAllCategoryById,
 } = require("../controllers/productCategoryController");
 
 const productCategoryRoute = require("express").Router();
@@ -18,5 +19,6 @@ productCategoryRoute.put(
 ); // get blogs by category
 productCategoryRoute.delete("/:categoryId", deleteProductCategoryById);
 productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
+productCategoryRoute.get("/parentCategory/:parentcategoryId", getAllCategoryById); // remove blog
 
 module.exports = { productCategoryRoute };

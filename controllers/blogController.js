@@ -126,6 +126,7 @@ const getAllBlogs = async (req, res) => {
 };
 
 const updateBlogById = async (req, res) => {
+  console.log(req.body)
   try {
     const blogId = req.params.blogId;
     const {
@@ -197,7 +198,7 @@ const updateBlogById = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: error });
   }
 };
 

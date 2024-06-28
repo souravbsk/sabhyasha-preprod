@@ -1,5 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const { customizedFields } = require("../models/customizationModel");
+const { ObjectId } = require("mongodb");
 
 const createCategoryCustomizedField = async (req, res) => {
   try {
@@ -50,12 +51,14 @@ const deleteCategoryCustomizedFieldById = async (req, res) => {
   try {
     const customizedId = req.params.customizedId;
 
+
     // Ensure the ID is a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(customizedId)) {
       return res.status(400).json({ error: "Invalid field ID" });
     }
+    const filter = new ObjectId(customizedId)
 
-    const result = await customizedFields.findByIdAndDelete(customizedId);
+    const result = await customizedFields.deleteOne(filter);
 
     if (!result) {
       return res.status(404).json({ error: "Customized Field not found" });

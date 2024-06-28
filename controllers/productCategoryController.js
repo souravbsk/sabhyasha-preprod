@@ -23,7 +23,7 @@ const createProductCategory = async (req, res) => {
       parentCategoryId,
       createdAt: new Date(),
       image: req.fileUrls ? req.fileUrls[0] : undefined,
-      isCustomizable: Boolean(isCustomizable),
+      isCustomizable: isCustomizable && JSON.parse(isCustomizable),
       selectedFields: selectedFieldsParse,
       slug: generateSlugUrl,
     });
@@ -124,6 +124,8 @@ const updateProductCategoryById = async (req, res) => {
 
     // Update product category using Mongoose
 
+    console.log();
+
     const updatedCategory = await productCategory.findByIdAndUpdate(
       categoryId,
       {
@@ -132,7 +134,7 @@ const updateProductCategoryById = async (req, res) => {
           updatedAt,
           parentCategoryId,
           image: imageURL,
-          isCustomizable: Boolean(isCustomizable),
+          isCustomizable: isCustomizable && JSON.parse(isCustomizable),
           selectedFields: selectedFieldsParse,
         },
       },
@@ -179,6 +181,7 @@ const deleteProductCategoryById = async (req, res) => {
 const getAllProductCategoryById = async (req, res) => {
   try {
     const parentcategoryId = req.params.parentcategoryId;
+    console.log(parentcategoryId, "fsafsdf");
 
     // Attempt to convert the parentcategoryId to ObjectId
     let filterCategoryId;
@@ -199,7 +202,6 @@ const getAllProductCategoryById = async (req, res) => {
     if (!productCategories || productCategories.length === 0) {
       return res.status(404).json({ error: "Product Categories not found" });
     }
-    console.log(productCategories);
 
     // Fetch details of each selected field
     await Promise.all(
@@ -236,10 +238,49 @@ const getAllProductCategoryById = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const getAllCategoryById = async (req, res) => {
+  try {
+    const parentcategoryId = req.params.parentcategoryId;
+
+    // Attempt to convert the parentcategoryId to ObjectId
+    let filterCategoryId;
+    try {
+      filterCategoryId = new mongoose.Types.ObjectId(parentcategoryId);
+    } catch (error) {
+      return res.status(400).json({ error: "Invalid parentcategoryId" });
+    }
+
+    // Find product categories that match the parentCategoryId
+    const productCategories = await productCategory
+      .find({
+        parentCategoryId: filterCategoryId,
+      })
+      .select("-image -slug -updatedAt -createdAt -selectedFields -isCustomizable") // Exclude 'image' and 'slug' fields
+      .lean();
+
+    if (!productCategories || productCategories.length === 0) {
+      return res.status(404).json({ error: "Product Categories not found" });
+    }
+
+    // Fetch details of each selected field
+
+    res.status(200).json({
+      success: true,
+      message: "Product Categories retrieved successfully",
+      data: productCategories,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createProductCategory,
   getAllProductCategories,
   updateProductCategoryById,
   deleteProductCategoryById,
   getAllProductCategoryById,
+  getAllCategoryById,
 };

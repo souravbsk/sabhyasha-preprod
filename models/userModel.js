@@ -2,9 +2,12 @@ const { default: mongoose } = require("mongoose");
 
 const userModel = new mongoose.Schema({
   displayName: String,
+  password: String,
   email: String,
   avatar: String,
   mobile: String,
+  username: String,
+  googleId: String,
   shippingAdresses: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,18 +15,6 @@ const userModel = new mongoose.Schema({
     },
   ],
   productsBought: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    },
-  ],
-  cart: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    },
-  ],
-  wishList: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
@@ -44,8 +35,8 @@ userModel.pre("save", function (next) {
   next();
 });
 
-const User = mongoose.model("User", userModel);
+const users = mongoose.model("users", userModel, "users");
 
 module.exports = {
-  User,
+  users,
 };

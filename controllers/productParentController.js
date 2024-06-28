@@ -1,6 +1,8 @@
+const { ObjectId } = require("mongodb");
 const { productParentCategory } = require("../models/parentCategoryModel");
 const { uploadToS3 } = require("../utlis/awsTools");
 const { slugGenerator, slugModifyGenerate } = require("../utlis/slugGenerate");
+const { productCategory } = require("../models/productCategoryModel");
 
 const createParentCategory = async (req, res) => {
   try {
@@ -61,6 +63,7 @@ const getAllParentCategories = async (req, res) => {
   }
 };
 
+
 //update parent category
 
 const updateParentCategoryById = async (req, res) => {
@@ -101,15 +104,14 @@ const updateParentCategoryById = async (req, res) => {
   }
 };
 
-
 //delete parent category
 const deleteParentCategoryById = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;
 
-    const deletedCategory = await productParentCategory.findByIdAndDelete(
-      categoryId
-    );
+    const filter = new ObjectId(categoryId);
+
+    const deletedCategory = await productParentCategory.deleteOne(filter);
 
     if (!deletedCategory) {
       return res
