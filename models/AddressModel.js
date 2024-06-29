@@ -48,6 +48,6 @@ addressSchema.pre("save", function (next) {
   next();
 });
 
-const shippingAddress = mongoose.model("addresses", addressSchema,"addresses");
+const shippingAddress = mongoose.model("addresses", addressSchema, "addresses");
 
 module.exports = { shippingAddress };

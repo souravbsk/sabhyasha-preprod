@@ -50,6 +50,7 @@ const { productSubCategoryRoute } = require("./routes/subCategory.routes");
 const { userAuth } = require("./routes/user.routes");
 const { addressRouter } = require("./routes/address.routes.js");
 const { mediaRoute } = require("./routes/media.routes.js");
+const { profileRouter } = require("./routes/profile.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -78,6 +79,9 @@ app.use("/api/address", addressRouter);
 app.use("/api/upload", mediaRoute);
 
 //media api end
+
+// profile api start
+app.use("/api/profile", profileRouter);
 
 //auth api
 app.use("/api/auth", userAuth);
