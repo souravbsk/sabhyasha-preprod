@@ -134,10 +134,35 @@ const checkAuth = async (req, res) => {
   }
 };
 
+const updatePassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const userId = new ObjectId(decoded?.id);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await users
+      .findByIdAndUpdate(userId, {
+        $set: {
+          password: hashedPassword,
+        },
+      })
+      .catch((err) => {
+        console.log(err);
+        res
+          .status(500)
+          .send({ success: false, message: "Something went wrong!" });
+      });
+    res.status(200).send({ success: true, message: "Password updated" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   googleLoginCallback,
   logoutUser,
   checkAuth,
+  updatePassword,
 };

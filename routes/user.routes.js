@@ -6,6 +6,7 @@ const {
   googleLoginCallback,
   logoutUser,
   checkAuth,
+  updatePassword,
 } = require("../controllers/UserController.js");
 
 const userAuth = require("express").Router();
@@ -24,5 +25,6 @@ userAuth.get(
 
 userAuth.post("/logout", logoutUser);
 userAuth.get("/checkAuth", verifyJwt, checkAuth);
+userAuth.put("/changepassword", verifyJwt, updatePassword);
 
 module.exports = { userAuth };
