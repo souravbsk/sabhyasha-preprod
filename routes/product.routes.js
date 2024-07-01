@@ -4,6 +4,8 @@ const {
   quickUpdateProductById,
   bulkUploadProducts,
   deleteProductById,
+  showProducts,
+  viewProduct,
 } = require("../controllers/productController");
 
 const productRoute = require("express").Router();
@@ -20,6 +22,10 @@ productRoute.put(
   "/admin/product/quick-update/:productId",
   quickUpdateProductById
 );
+
+// user viewing product
+productRoute.get("/user/products", showProducts);
+productRoute.get("/user/product/:productId", viewProduct);
 
 productRoute.delete("/admin/product/:productId", deleteProductById);
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
