@@ -7,7 +7,7 @@ const {
   logoutUser,
   checkAuth,
   updatePassword,
-} = require("../controllers/UserController.js");
+} = require("../controllers/userController.js");
 
 const userAuth = require("express").Router();
 const upload = require("multer")();

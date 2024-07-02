@@ -42,7 +42,7 @@ const uploadFile = async (req, res) => {
   }
 };
 
-const listImagesWithFolder = async (req, res) => {
+const listImagesByFolder = async (req, res) => {
   try {
     const folderName = "Blog";
     await listS3Objects(folderName)(req, res);
@@ -101,7 +101,7 @@ const getAllImageWithFolder = async (req, res) => {
 };
 module.exports = {
   uploadFile,
-  listImagesWithFolder,
+  listImagesByFolder,
   listImageFolders,
   deleteImage,
   deleteFolder,

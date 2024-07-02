@@ -112,13 +112,13 @@ const checkAuth = async (req, res) => {
   try {
     const decoded = req.decoded;
 
-    const email = decoded?.email;
+    const userEmail = decoded?.email;
     const userId = new ObjectId(decoded?.id);
 
-    if (email && userId) {
+    if (userEmail && userId) {
       const existingUser = await users.findOne(
-        { email: email, _id: userId },
-        { projection: { password: 0 } } // Exclude the password field
+        { email: userEmail, _id: userId },
+        "email avatar username" // Specify fields to include
       );
 
       if (existingUser) {
