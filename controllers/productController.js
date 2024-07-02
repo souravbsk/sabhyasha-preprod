@@ -13,6 +13,7 @@ const {
 const excelToBoolean = require("../utlis/excelToBoolean");
 const { slugGenerator } = require("../utlis/slugGenerate");
 const xlsx = require("xlsx");
+const { default: mongoose } = require("mongoose");
 
 const createProduct = async (req, res) => {
   try {
@@ -617,10 +618,152 @@ const deleteProductById = async (req, res) => {
   }
 };
 
+const showProducts = async (req, res) => {
+  try {
+    const { viewSamples } = req.body;
+    const data = [];
+    const fetchedData = await Product.find({});
+    fetchedData.forEach((product) => {
+      data.push({
+        id: product._id,
+        title: product.name,
+        image: product.image,
+        cost: product.price,
+        status: product.quantity > 0 ? "Sale" : "unavailable",
+      });
+    });
+    res.send({
+      success: true,
+      data: viewSamples ? data.slice(0, 15) : data,
+      message: "fetched products successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+};
+
+const viewProduct = async (req, res) => {
+  try {
+    const productId = new ObjectId(req.params.productId);
+
+    const product = await Product.aggregate([
+      {
+        $match: { _id: productId },
+      },
+      {
+        $lookup: {
+          from: "productParentCategory",
+          localField: "parent_category_id",
+          foreignField: "_id",
+          as: "parentCategory",
+        },
+      },
+      {
+        $lookup: {
+          from: "productCategory",
+          localField: "category_id",
+          foreignField: "_id",
+          as: "productCategory",
+        },
+      },
+      {
+        $lookup: {
+          from: "productSubCategory",
+          localField: "subcategory_id",
+          foreignField: "_id",
+          as: "subCategory",
+        },
+      },
+      {
+        $lookup: {
+          from: "stores",
+          localField: "store_address_id",
+          foreignField: "_id",
+          as: "store",
+        },
+      },
+      {
+        $lookup: {
+          from: "customizedFileds",
+          localField: "customizations._id",
+          foreignField: "_id",
+          as: "customizations",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          short_description: 1,
+          description: 1,
+          isCustomizable: 1,
+          hsnCode: 1,
+          tax_rate: 1,
+          image: 1,
+          tags: 1,
+          meta_title: 1,
+          meta_keyword: 1,
+          meta_description: 1,
+          date_available: 1,
+          dispatch_in_days: 1,
+          quantity: 1,
+          sort_order: 1,
+          maximum_order: 1,
+          minimum_order: 1,
+          height: 1,
+          height_after_package: 1,
+          weight: 1,
+          weight_after_package: 1,
+          width: 1,
+          width_after_package: 1,
+          length: 1,
+          length_after_package: 1,
+          returnable: 1,
+          cancellable: 1,
+          available_for_cod: 1,
+          seller_pickup_return: 1,
+          return_window: 1,
+          price: 1,
+          discount: 1,
+          is_shipping_cost_included: 1,
+          additional_shipping_cost: 1,
+          slug: 1,
+          view_count: 1,
+          productGalleryImageUrls: 1,
+          "parentCategory.name": 1,
+          "productCategory.name": 1,
+          "subCategory.name": 1,
+          "store.name": 1,
+          customizations: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          author: 1,
+          status: 1,
+        },
+      },
+    ]);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product,
+      message: "Product fetched successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
   quickUpdateProductById,
   bulkUploadProducts,
   deleteProductById,
+  showProducts,
+  viewProduct,
 };
