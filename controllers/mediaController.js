@@ -44,7 +44,8 @@ const uploadFile = async (req, res) => {
 
 const listImagesByFolder = async (req, res) => {
   try {
-    const folderName = "Blog";
+    const folderName = req.params.folderName;
+    console.log(folderName)
     await listS3Objects(folderName)(req, res);
   } catch (error) {
     console.error("Error listing images:", error);
@@ -62,10 +63,12 @@ const listImageFolders = async (req, res) => {
 };
 
 const deleteImage = async (req, res) => {
-  console.log(req.body);
+  console.log(req);
   const bucketName = process.env.S3_BUCKET_NAME;
+  console.log(req.body.imageData)
   const key = req.body.url; // Assuming the key is passed in the URL parameter
 
+  console.log(key)
   try {
     const newParseS3Url = await parseS3Url(key);
 
