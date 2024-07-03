@@ -157,7 +157,7 @@ const updatePassword = async (req, res) => {
     res.status(500).send({ success: false, message: "Server error" });
   }
 };
-
+// fsd
 module.exports = {
   registerUser,
   loginUser,
