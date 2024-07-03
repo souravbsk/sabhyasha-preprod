@@ -5,6 +5,7 @@ const addAddress = async (req, res) => {
   try {
     const { type, name, country, city, state, zip, address } = req.body;
     const { userId } = req.params;
+    console.log(userId, type, name, country, city, state, zip, address, "fsf");
 
     if (!userId || !type || !country || !city || !zip || !address) {
       return res

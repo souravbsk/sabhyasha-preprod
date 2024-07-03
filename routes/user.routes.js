@@ -7,11 +7,11 @@ const {
   logoutUser,
   checkAuth,
   updatePassword,
+  forgotPassword,
   sendOtpToRegisteredUser,
   verifyRegisteredUserOtp,
   sendOtpToAnyUser,
   veriyAnyOtp,
-  forgotPassword,
 } = require("../controllers/UserController.js");
 
 const userAuth = require("express").Router();
