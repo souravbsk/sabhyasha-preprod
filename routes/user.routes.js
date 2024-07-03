@@ -7,6 +7,11 @@ const {
   logoutUser,
   checkAuth,
   updatePassword,
+  sendOtpToRegisteredUser,
+  verifyRegisteredUserOtp,
+  sendOtpToAnyUser,
+  veriyAnyOtp,
+  forgotPassword,
 } = require("../controllers/UserController.js");
 
 const userAuth = require("express").Router();
@@ -25,6 +30,17 @@ userAuth.get(
 
 userAuth.post("/logout", logoutUser);
 userAuth.get("/checkAuth", verifyJwt, checkAuth);
+
+// resetting password
 userAuth.put("/changepassword", verifyJwt, updatePassword);
+
+// forgot password
+userAuth.post("/forgotpassword", forgotPassword);
+
+// otp routes
+userAuth.post("/registered/getotp", sendOtpToRegisteredUser);
+userAuth.post("/registered/verifyotp", verifyRegisteredUserOtp);
+userAuth.post("/getotp", sendOtpToAnyUser);
+userAuth.post("/verifyotp", veriyAnyOtp);
 
 module.exports = { userAuth };

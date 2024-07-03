@@ -8,6 +8,7 @@ const userModel = new mongoose.Schema({
   mobile: String,
   username: String,
   googleId: String,
+  otp: String,
   billingAddressIds: [
     {
       type: mongoose.Schema.Types.ObjectId,

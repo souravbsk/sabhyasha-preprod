@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const { ObjectId } = require("mongodb");
 const { users } = require("../models/userModel");
+const { generateOtp } = require("../utlis/nodeMailerSetup");
+const { generateJWT } = require("../utlis/generateJWT");
 require("dotenv").config();
 
 const registerUser = async (req, res) => {
@@ -136,25 +138,148 @@ const checkAuth = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
-    const { password } = req.body;
+    const { new_password, old_password } = req.body;
     const userId = new ObjectId(decoded?.id);
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await users
-      .findByIdAndUpdate(userId, {
-        $set: {
-          password: hashedPassword,
-        },
-      })
-      .catch((err) => {
-        console.log(err);
-        res
-          .status(500)
-          .send({ success: false, message: "Something went wrong!" });
-      });
-    res.status(200).send({ success: true, message: "Password updated" });
+    const user = await users.findById(userId);
+    const isPasswordMatch = await bcrypt.compare(old_password, user.password);
+    if (isPasswordMatch) {
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+      await users
+        .findByIdAndUpdate(userId, {
+          $set: {
+            password: hashedPassword,
+          },
+        })
+        .catch((err) => {
+          console.log(err);
+          res
+            .status(500)
+            .send({ success: false, message: "Something went wrong!" });
+        });
+      res.status(200).send({ success: true, message: "Password updated" });
+    } else {
+      res
+        .status(400)
+        .send({ success: false, message: "Old password is incorrect" });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).send({ success: false, message: "Email is required!" });
+      return;
+    }
+    const user = await users.findOne({ email: email }).catch((err) => {
+      console.log(err);
+      res
+        .status(500)
+        .send({ success: false, message: "Something went wrong!" });
+    });
+    if (!user) {
+      res.status(404).send({ success: false, message: "mail not registered" });
+      return;
+    }
+    const token = jwt.sign(
+      {
+        email: user.email,
+        id: user?._id,
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "20m" }
+    );
+    res
+      .status(200)
+      .send({ success: true, token: token, message: "session alloted!" });
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+const sendOtpToRegisteredUser = async (req, res) => {
+  try {
+    const mail = req.body.email;
+    if (!mail) {
+      res.send({ success: false, message: "Email is required!" });
+      return;
+    }
+    const user = await users.findOne({ email: mail });
+    if (!user) {
+      res.send({ success: false, message: "User not found!" });
+      return;
+    } else {
+      const otp = await generateOtp(mail);
+      console.log(otp);
+      await users.findOneAndUpdate({ email: mail }, { otp: otp });
+      res.send({ success: true });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+const verifyRegisteredUserOtp = async (req, res) => {
+  try {
+    const { otpEntered, email } = req.body;
+    if (!otpEntered || !email) {
+      res.send({ success: false, message: "Email and otp is required!" });
+      return;
+    }
+    const user = await users.findOne({ email: email });
+    if (!user) {
+      res.send({ success: false, message: "User not found!" });
+      return;
+    }
+    if (user.otp === otpEntered) {
+      res.send({ success: true, message: "Otp verified!" });
+      await users.findOneAndUpdate({ email: email }, { otp: null });
+    } else {
+      res.send({ success: false, message: "Incorrect otp entered!" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+const sendOtpToAnyUser = async (req, res) => {
+  try {
+    const mail = req.body.email;
+    if (!mail) {
+      res.send({ success: false, message: "Email is required!" });
+      return;
+    }
+    const otp = await generateOtp(mail);
+    console.log(otp);
+    res.send({ success: true, otp: otp });
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+const veriyAnyOtp = async (req, res) => {
+  try {
+    const { otpEntered, otp } = req.body;
+    if (!otpEntered || !otp) {
+      res.send({ success: false, message: "Otp is required!" });
+      return;
+    }
+    if (otp === otpEntered) {
+      res.send({ success: true, message: "Otp verified!" });
+    } else {
+      res.send({ success: false, message: "Incorrect otp entered!" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
   }
 };
 
@@ -165,4 +290,9 @@ module.exports = {
   logoutUser,
   checkAuth,
   updatePassword,
+  forgotPassword,
+  sendOtpToRegisteredUser,
+  verifyRegisteredUserOtp,
+  sendOtpToAnyUser,
+  veriyAnyOtp,
 };
