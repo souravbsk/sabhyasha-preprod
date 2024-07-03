@@ -45,7 +45,7 @@ const uploadFile = async (req, res) => {
 const listImagesByFolder = async (req, res) => {
   try {
     const folderName = req.params.folderName;
-    console.log(folderName)
+    console.log(folderName);
     await listS3Objects(folderName)(req, res);
   } catch (error) {
     console.error("Error listing images:", error);
@@ -65,15 +65,15 @@ const listImageFolders = async (req, res) => {
 const deleteImage = async (req, res) => {
   console.log(req);
   const bucketName = process.env.S3_BUCKET_NAME;
-  console.log(req.body.imageData)
+  console.log(req.body.imageData);
   const key = req.body.url; // Assuming the key is passed in the URL parameter
 
-  console.log(key)
+  console.log(key);
   try {
     const newParseS3Url = await parseS3Url(key);
 
     await deleteS3Object(newParseS3Url);
-    res.status(200).json({ message: `Deleted ${key} from S3` });
+    res.status(200).json({ success: true, message: `Deleted ${key} from S3` });
   } catch (error) {
     console.error("Delete image from S3 error:", error);
     res.status(500).json({ error: "Failed to delete image from S3" });

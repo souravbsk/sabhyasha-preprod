@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 require("dotenv").config();
+const crypto = require("crypto");
 
 AWS.config.update({
   accessKeyId: process.env.S3_ACCESS_KEY,

@@ -10,7 +10,7 @@ const getProfile = async (req, res) => {
         .status(400)
         .send({ success: false, message: "User id is required" });
     }
-    const user = await users.findById(userId);
+    const user = await users.findById(userId).select("-password");
     const shippingAdds = await shippingAddress.find({
       user: userId,
       type: "shipping",
@@ -24,6 +24,7 @@ const getProfile = async (req, res) => {
         .status(404)
         .send({ success: false, message: "User not found" });
     }
+    console.log(user);
     res.status(200).send({
       success: true,
       data: user,
@@ -46,8 +47,9 @@ const updateProfile = async (req, res) => {
     }
 
     const { name, mobile } = req.body;
-    req.files.length > 0 ? await uploadToS3("Profile")(req, res) : "";
-    const oldUser = await users.findById(userId);
+    req?.files?.length > 0 ? await uploadToS3("Profile")(req, res) : "";
+    const oldUser = await users.findById(userId).select("-password");
+    console.log(req?.fileUrls);
 
     const updatedUser = await users.findByIdAndUpdate(
       userId,
@@ -55,7 +57,7 @@ const updateProfile = async (req, res) => {
         $set: {
           displayName: name || oldUser.displayName,
           mobile: mobile || oldUser.mobile,
-          avatar: req.fileUrls ? req.fileUrls[0] : oldUser.avatar,
+          avatar: req?.fileUrls ? req?.fileUrls[0] : oldUser.avatar,
         },
       },
       {
