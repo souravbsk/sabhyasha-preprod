@@ -3,8 +3,8 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const { ObjectId } = require("mongodb");
 const { users } = require("../models/userModel");
-const { generateOtp } = require("../utlis/nodeMailerSetup");
-const { generateJWT } = require("../utlis/generateJWT");
+const { generateOtp, sendMail } = require("../utlis/emailUtils.js");
+const { generateJWT } = require("../utlis/generateJWT.js");
 require("dotenv").config();
 
 const registerUser = async (req, res) => {
@@ -136,38 +136,7 @@ const checkAuth = async (req, res) => {
   }
 };
 
-const updatePassword = async (req, res) => {
-  try {
-    const { new_password, old_password } = req.body;
-    const userId = new ObjectId(decoded?.id);
-    const user = await users.findById(userId);
-    const isPasswordMatch = await bcrypt.compare(old_password, user.password);
-    if (isPasswordMatch) {
-      const hashedPassword = await bcrypt.hash(new_password, 10);
-      await users
-        .findByIdAndUpdate(userId, {
-          $set: {
-            password: hashedPassword,
-          },
-        })
-        .catch((err) => {
-          console.log(err);
-          res
-            .status(500)
-            .send({ success: false, message: "Something went wrong!" });
-        });
-      res.status(200).send({ success: true, message: "Password updated" });
-    } else {
-      res
-        .status(400)
-        .send({ success: false, message: "Old password is incorrect" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ success: false, message: "Server error" });
-  }
-};
-
+// forgot password
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -175,30 +144,110 @@ const forgotPassword = async (req, res) => {
       res.status(400).send({ success: false, message: "Email is required!" });
       return;
     }
-    const user = await users.findOne({ email: email }).catch((err) => {
-      console.log(err);
-      res
-        .status(500)
-        .send({ success: false, message: "Something went wrong!" });
-    });
+
+    const user = await users.findOne({ email });
     if (!user) {
-      res.status(404).send({ success: false, message: "mail not registered" });
+      res.status(404).send({ success: false, message: "Email not registered" });
       return;
     }
-    const token = jwt.sign(
-      {
-        email: user.email,
-        id: user?._id,
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "20m" }
-    );
+
+    // Generate a unique token for password reset with a short expiry (e.g., 20 minutes)
+    const token = await generateJWT(user._id, user.email);
+
+    // Store the token in the user document
+    user.passwordResetToken = token; // Assuming you have 'passwordResetToken' field in your user schema
+    await user.save();
+
+    // Construct the reset URL and email content
+    const resetUrl = `${req.headers.origin}/reset-password/${token}`;
+    const subject = "Password Reset Request";
+    const body = {
+      text: `Please click on the following link, or paste this into your browser to complete the process: ${resetUrl}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+          <p>Hello, ${user.displayName}</p>
+          <p>You have requested a password reset. Please click the button below to reset your password:</p>
+          <p style="text-align: center;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: #fff; background-color: #007bff; border-radius: 5px; text-decoration: none;">Reset Password</a>
+          </p>
+          <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+          <p>Best regards,<br />Sabhyasha Team</p>
+        </div>
+      `,
+    };
+
+    // Send the password reset email
+    await sendMail(email, subject, body);
+
     res
       .status(200)
-      .send({ success: true, token: token, message: "session alloted!" });
+      .send({ success: true, message: "Password reset email sent!" });
   } catch (error) {
-    console.log(error);
-    res.send({ success: false, message: "Something went wrong!" });
+    console.error("Error in forgotPassword:", error);
+    res.status(500).send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+// reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required!",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (err) {
+      if (
+        err.name === "JsonWebTokenError" ||
+        err.name === "TokenExpiredError"
+      ) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid or expired token!" });
+      }
+      throw err; // Rethrow other errors for generic handling
+    }
+
+    const user = await users.findById(decoded.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found!" });
+    }
+
+    // Ensure token matches expected user
+    if (decoded.email !== user.email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid token for this user!" });
+    }
+
+    // Check if the token in the database matches the token provided
+    if (user.passwordResetToken !== token) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token!" });
+    }
+
+    // Update user's password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordResetToken = null; // Clear the token after use
+    await user.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully!" });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    res.status(500).json({ success: false, message: "Something went wrong!" });
   }
 };
 
@@ -290,8 +339,8 @@ module.exports = {
   googleLoginCallback,
   logoutUser,
   checkAuth,
-  updatePassword,
   forgotPassword,
+  resetPassword,
   sendOtpToRegisteredUser,
   verifyRegisteredUserOtp,
   sendOtpToAnyUser,

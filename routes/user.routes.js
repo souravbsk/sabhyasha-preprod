@@ -6,13 +6,13 @@ const {
   googleLoginCallback,
   logoutUser,
   checkAuth,
-  updatePassword,
   forgotPassword,
   sendOtpToRegisteredUser,
   verifyRegisteredUserOtp,
   sendOtpToAnyUser,
   veriyAnyOtp,
-} = require("../controllers/UserController.js");
+  resetPassword,
+} = require("../controllers/userController.js");
 
 const userAuth = require("express").Router();
 const upload = require("multer")();
@@ -32,15 +32,15 @@ userAuth.post("/logout", logoutUser);
 userAuth.get("/checkAuth", verifyJwt, checkAuth);
 
 // resetting password
-userAuth.put("/changepassword", verifyJwt, updatePassword);
 
 // forgot password
-userAuth.post("/forgotpassword", forgotPassword);
+userAuth.post("/forgot-password", forgotPassword);
+userAuth.post("/reset-password", resetPassword);
 
 // otp routes
-userAuth.post("/registered/getotp", sendOtpToRegisteredUser);
-userAuth.post("/registered/verifyotp", verifyRegisteredUserOtp);
-userAuth.post("/getotp", sendOtpToAnyUser);
-userAuth.post("/verifyotp", veriyAnyOtp);
+userAuth.post("/registered/get-otp", sendOtpToRegisteredUser);
+userAuth.post("/registered/verify-otp", verifyRegisteredUserOtp);
+userAuth.post("/get-otp", sendOtpToAnyUser);
+userAuth.post("/verify-otp", veriyAnyOtp);
 
 module.exports = { userAuth };

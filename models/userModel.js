@@ -27,6 +27,7 @@ const userModel = new mongoose.Schema({
       ref: "Product",
     },
   ],
+  passwordResetToken: String,
   createdAt: {
     type: Date,
     default: Date.now(),
