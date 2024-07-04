@@ -6,7 +6,7 @@ const {
   deleteProductById,
   showProducts,
   viewProduct,
-} = require("../controllers/productController");
+} = require("../controllers/product.controllers.js");
 
 const productRoute = require("express").Router();
 const upload = require("multer")();

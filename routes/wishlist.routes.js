@@ -2,7 +2,7 @@ const {
   addItem,
   getWishListItems,
   removeItem,
-} = require("../controllers/wishListController");
+} = require("../controllers/wishList.controllers.js");
 const { verifyJwt } = require("../middlewares/verifyJWT");
 
 const wishListRouter = require("express").Router();

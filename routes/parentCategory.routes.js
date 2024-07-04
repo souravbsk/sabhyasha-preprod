@@ -3,7 +3,7 @@ const {
   getAllParentCategories,
   updateParentCategoryById,
   deleteParentCategoryById,
-} = require("../controllers/productParentController");
+} = require("../controllers/productParent.controllers.js");
 
 const parentCategoryRoute = require("express").Router();
 const upload = require("multer")();

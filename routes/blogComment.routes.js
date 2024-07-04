@@ -3,7 +3,7 @@ const {
   getAllBlogComments,
   updateBlogCommentById,
   deleteCommentById,
-} = require("../controllers/blogCommentController");
+} = require("../controllers/blogComment.controllers.js");
 
 const blogCommentRoute = require("express").Router();
 const upload = require("multer")();

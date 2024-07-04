@@ -2,7 +2,7 @@ const {
   getProfile,
   updateProfile,
   updatePassword,
-} = require("../controllers/profileController");
+} = require("../controllers/profile.controllers.js");
 const { verifyJwt } = require("../middlewares/verifyJWT");
 
 const profileRouter = require("express").Router();

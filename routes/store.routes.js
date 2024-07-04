@@ -1,4 +1,4 @@
-const { getAllStores } = require("../controllers/storeController");
+const { getAllStores } = require("../controllers/store.controllers.js");
 
 const storeRoute = require("express").Router();
 const upload = require("multer")();

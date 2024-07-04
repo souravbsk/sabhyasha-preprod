@@ -2,7 +2,7 @@ const {
   createCategoryCustomizedField,
   getAllCustomizeFields,
   deleteCategoryCustomizedFieldById,
-} = require("../controllers/categoryCustomizedFieldController");
+} = require("../controllers/categoryCustomizedField.controllers.js");
 
 const categoryCustomizedRoute = require("express").Router();
 const upload = require("multer")();
