@@ -1,6 +1,8 @@
 const { shippingAddress } = require("../models/AddressModel");
 const { users } = require("../models/userModel");
 const { uploadToS3 } = require("../utlis/awsTools");
+const bcrypt = require("bcryptjs");
+const { ObjectId } = require("mongodb");
 
 const getProfile = async (req, res) => {
   try {
@@ -10,7 +12,7 @@ const getProfile = async (req, res) => {
         .status(400)
         .send({ success: false, message: "User id is required" });
     }
-    const user = await users.findById(userId).select("-password");
+    const user = await users.findById(userId).select('-password');;
     const shippingAdds = await shippingAddress.find({
       user: userId,
       type: "shipping",
@@ -75,4 +77,57 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile };
+const updatePassword = async (req, res) => {
+  try {
+    console.log("first");
+    console.log(req.body);
+    const { new_password, old_password } = req.body;
+    const { email, id } = req.decoded;
+
+    const userId = new ObjectId(id);
+    console.log(userId);
+    const user = await users.findById(userId);
+
+    // Check if user exists
+    if (!user) {
+      return res
+        .status(404)
+        .send({ success: false, message: "User not found" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(old_password, user?.password);
+
+    // If passwords do not match, send an error message
+    if (!isPasswordMatch) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Old password is incorrect" });
+    }
+
+    if (isPasswordMatch) {
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+      await users
+        .findByIdAndUpdate(userId, {
+          $set: {
+            password: hashedPassword,
+          },
+        })
+        .catch((err) => {
+          console.log(err);
+          res
+            .status(500)
+            .send({ success: false, message: "Something went wrong!" });
+        });
+      res.status(200).send({ success: true, message: "Password updated" });
+    } else {
+      res
+        .status(400)
+        .send({ success: false, message: "Old password is incorrect" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = { getProfile, updateProfile, updatePassword };

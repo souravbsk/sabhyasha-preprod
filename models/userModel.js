@@ -8,6 +8,7 @@ const userModel = new mongoose.Schema({
   mobile: String,
   username: String,
   googleId: String,
+  otp: String,
   billingAddressIds: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +27,7 @@ const userModel = new mongoose.Schema({
       ref: "Product",
     },
   ],
+  passwordResetToken: String,
   createdAt: {
     type: Date,
     default: Date.now(),
