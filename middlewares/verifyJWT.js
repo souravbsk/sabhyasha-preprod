@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-exports.verifyJwt = (req, res, next) => {
+const verifyJwt = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
     return res
@@ -18,3 +18,5 @@ exports.verifyJwt = (req, res, next) => {
     next();
   });
 };
+
+module.exports = { verifyJwt };
