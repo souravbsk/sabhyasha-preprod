@@ -16,18 +16,18 @@ productRoute.post(
   upload.any(),
   bulkUploadProducts
 ); // create blog category
-productRoute.post("/product/create", upload.any(), createProduct); // create blog category
+productRoute.post("/admin/create", upload.any(), createProduct); // create blog category
 productRoute.get("/admin/products", getAllProducts); // view all blogs
 productRoute.put(
   "/admin/product/quick-update/:productId",
   quickUpdateProductById
 );
+productRoute.delete("/admin/product/:productId", deleteProductById);
 
 // user viewing product
 productRoute.get("/user/products", showProducts);
 productRoute.get("/user/product/:productId", viewProduct);
 
-productRoute.delete("/admin/product/:productId", deleteProductById);
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
 
 module.exports = { productRoute };

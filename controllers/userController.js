@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const { ObjectId } = require("mongodb");
-const { users } = require("../models/userModel");
+const { users } = require("../models/userModel.js");
 const { generateOtp, sendMail } = require("../utlis/emailUtils.js");
 const { generateJWT } = require("../utlis/generateJWT.js");
 require("dotenv").config();

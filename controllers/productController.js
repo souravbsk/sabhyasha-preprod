@@ -620,24 +620,43 @@ const deleteProductById = async (req, res) => {
 
 const showProducts = async (req, res) => {
   try {
-    const { sampleLength } = req.body;
-    const data = [];
-    const fetchedData = await Product.find({});
-    sampleLength =
-      sampleLength > fetchedData.length ? fetchedData.length : sampleLength;
-    fetchedData.forEach((product) => {
-      data.push({
-        id: product._id,
-        title: product.name,
-        image: product.image,
-        cost: product.price,
-        salesStatus: product.quantity > 0 ? "Sale" : "unavailable",
-      });
-    });
+    let { sampleLength } = req.body; // Changed from `const` to `let`
+
+    // Fetch the total number of products
+    const totalProducts = await Product.countDocuments();
+
+    // Adjust sampleLength if it's greater than the total number of products
+    sampleLength = Math.min(sampleLength, totalProducts);
+
+    // Use aggregation to fetch and transform data directly in MongoDB
+    const pipeline = [
+      {
+        $project: {
+          id: "$_id",
+          title: "$name",
+          image: "$image",
+          cost: "$price",
+          salesStatus: {
+            $cond: {
+              if: { $gt: ["$quantity", 0] },
+              then: "Sale",
+              else: "unavailable",
+            },
+          },
+        },
+      },
+      {
+        $limit: sampleLength,
+      },
+    ];
+
+    const data = await Product.aggregate(pipeline);
+
     res.send({
       success: true,
-      data: data.slice(0, sampleLength),
-      message: "fetched products successfully!",
+      data,
+      totalProducts,
+      message: "Fetched products successfully!",
     });
   } catch (error) {
     console.error(error);

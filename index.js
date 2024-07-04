@@ -71,7 +71,7 @@ app.use("/api/product/category", productCategoryRoute);
 app.use("/api/product/subcategory", productSubCategoryRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/store", storeRoute);
-app.use("/api", productRoute);
+app.use("/api/product", productRoute);
 // prodcut api end
 
 // address api start
