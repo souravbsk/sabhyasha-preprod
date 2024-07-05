@@ -618,24 +618,32 @@ const deleteProductById = async (req, res) => {
   }
 };
 
+// show product for user ui
 const showProducts = async (req, res) => {
   try {
-    let { sampleLength } = req.body; // Changed from `const` to `let`
+    console.log(req.query);
+    let { productLength } = req.query;
 
     // Fetch the total number of products
     const totalProducts = await Product.countDocuments();
 
-    // Adjust sampleLength if it's greater than the total number of products
-    sampleLength = Math.min(sampleLength, totalProducts);
+    // Adjust productLength if it's greater than the total number of products
+    productLength = Math.min(parseInt(productLength), totalProducts);
 
-    // Use aggregation to fetch and transform data directly in MongoDB
+    // Define the aggregation pipeline
     const pipeline = [
       {
         $project: {
-          id: "$_id",
           title: "$name",
           image: "$image",
-          cost: "$price",
+          price: "$price",
+          quantity: "$quantity",
+          discount: { $ifNull: ["$discount", 0] }, // Ensure discount defaults to 0 if it's null
+          slug: "$slug",
+          productGalleryImageUrls: {
+            $arrayElemAt: ["$productGalleryImageUrls", 0],
+          }, // Take only the first image URL
+          createdAt: "$createdAt",
           salesStatus: {
             $cond: {
               if: { $gt: ["$quantity", 0] },
@@ -646,13 +654,47 @@ const showProducts = async (req, res) => {
         },
       },
       {
-        $limit: sampleLength,
+        $addFields: {
+          discountPrice: {
+            $cond: {
+              if: {
+                $or: [{ $eq: ["$discount", null] }, { $eq: ["$discount", 0] }],
+              }, // If discount is null or 0
+              then: null, // Set discountPrice to null
+              else: {
+                $subtract: [
+                  "$price",
+                  { $multiply: ["$price", { $divide: ["$discount", 100] }] }, // Calculate discounted price
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          image: 1,
+          price: 1,
+          discount: 1,
+          discountPrice: 1,
+          quantity: 1,
+          slug: 1,
+          productGalleryImageUrls: 1,
+          createdAt: 1,
+          salesStatus: 1,
+        },
+      },
+      {
+        $limit: productLength, // Limit the number of documents returned
       },
     ];
 
+    // Execute aggregation pipeline
     const data = await Product.aggregate(pipeline);
 
-    res.send({
+    // Return response
+    res.status(200).json({
       success: true,
       data,
       totalProducts,
