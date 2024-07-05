@@ -36,18 +36,18 @@ app.use(passport.session());
 require("./middlewares/passport.config.js");
 
 const { blogRoute } = require("./routes/blog.routes");
-const { blogCategoryRoute } = require("./routes/blogCategory.routes");
-const { blogCommentRoute } = require("./routes/blogComment.routes");
+const { blogCategoryRoute } = require("./routes/blogCategory.routes.js");
+const { blogCommentRoute } = require("./routes/blogComment.routes.js");
 const {
   categoryCustomizedRoute,
-} = require("./routes/categoryCustomizedField.routes");
-const { couponRoute } = require("./routes/coupon.routes");
-const { parentCategoryRoute } = require("./routes/parentCategory.routes");
-const { productRoute } = require("./routes/product.routes");
-const { productCategoryRoute } = require("./routes/productCategory.routes");
-const { storeRoute } = require("./routes/store.routes");
-const { productSubCategoryRoute } = require("./routes/subCategory.routes");
-const { userAuth } = require("./routes/user.routes");
+} = require("./routes/categoryCustomizedField.routes.js");
+const { couponRoute } = require("./routes/coupon.routes.js");
+const { parentCategoryRoute } = require("./routes/parentCategory.routes.js");
+const { productRoute } = require("./routes/product.routes.js");
+const { productCategoryRoute } = require("./routes/productCategory.routes.js");
+const { storeRoute } = require("./routes/store.routes.js");
+const { productSubCategoryRoute } = require("./routes/subCategory.routes.js");
+const { userAuth } = require("./routes/auth.routes.js");
 const { addressRouter } = require("./routes/address.routes.js");
 const { mediaRoute } = require("./routes/media.routes.js");
 const { profileRouter } = require("./routes/profile.routes.js");
