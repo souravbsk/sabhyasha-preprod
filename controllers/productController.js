@@ -620,7 +620,7 @@ const deleteProductById = async (req, res) => {
 
 const showProducts = async (req, res) => {
   try {
-    const { sampleLength } = req.body;
+    let { sampleLength } = req.body;
     const data = [];
     const fetchedData = await Product.find({});
     sampleLength =
@@ -630,12 +630,19 @@ const showProducts = async (req, res) => {
         id: product._id,
         title: product.name,
         image: product.image,
-        cost: product.price,
+        price: product.price,
+        productGalleryImageUrls: product.productGalleryImageUrls,
         salesStatus: product.quantity > 0 ? "Sale" : "unavailable",
+        isShippingCostIncluded: product.is_shipping_cost_included,
+        additional_shipping_cost: product.additional_shipping_cost,
+        discount: product.discount,
+        createdAt: product.createdAt,
+        slug: product.slug,
       });
     });
     res.send({
       success: true,
+      available: fetchedData.length,
       data: data.slice(0, sampleLength),
       message: "fetched products successfully!",
     });
