@@ -7,7 +7,7 @@ const {
   updateBlogById,
   getBlogById,
   getBlogByCategory,
-} = require("../controllers/blogController");
+} = require("../controllers/blog.controllers.js");
 
 const blogRoute = require("express").Router();
 const upload = require("multer")();

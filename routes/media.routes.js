@@ -5,7 +5,7 @@ const {
   deleteImage,
   deleteFolder,
   getAllImageWithFolder,
-} = require("../controllers/mediaController");
+} = require("../controllers/media.controllers.js");
 
 const mediaRoute = require("express").Router();
 const upload = require("multer")();

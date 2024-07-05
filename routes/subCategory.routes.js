@@ -4,7 +4,7 @@ const {
   updateSubCategoryById,
   deleteSubCategoryById,
   getAllSubCategoryById,
-} = require("../controllers/subCategoryController");
+} = require("../controllers/subCategory.controllers.js");
 
 const productSubCategoryRoute = require("express").Router();
 const upload = require("multer")();

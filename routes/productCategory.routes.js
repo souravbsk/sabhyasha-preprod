@@ -5,7 +5,7 @@ const {
   deleteProductCategoryById,
   getAllProductCategoryById,
   getAllCategoryById,
-} = require("../controllers/productCategoryController");
+} = require("../controllers/productCategory.controllers.js");
 
 const productCategoryRoute = require("express").Router();
 const upload = require("multer")();

@@ -1,7 +1,7 @@
 const {
   addAddress,
   removeAddress,
-} = require("../controllers/addressControllers");
+} = require("../controllers/address.controllers.js");
 
 const addressRouter = require("express").Router();
 

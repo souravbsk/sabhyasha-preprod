@@ -618,33 +618,87 @@ const deleteProductById = async (req, res) => {
   }
 };
 
+// show product for user ui
 const showProducts = async (req, res) => {
   try {
-    let { sampleLength } = req.body;
-    const data = [];
-    const fetchedData = await Product.find({});
-    sampleLength =
-      sampleLength > fetchedData.length ? fetchedData.length : sampleLength;
-    fetchedData.forEach((product) => {
-      data.push({
-        id: product._id,
-        title: product.name,
-        image: product.image,
-        price: product.price,
-        productGalleryImageUrls: product.productGalleryImageUrls,
-        salesStatus: product.quantity > 0 ? "Sale" : "unavailable",
-        isShippingCostIncluded: product.is_shipping_cost_included,
-        additional_shipping_cost: product.additional_shipping_cost,
-        discount: product.discount,
-        createdAt: product.createdAt,
-        slug: product.slug,
-      });
-    });
-    res.send({
+    // console.log(req.query);
+    let { productLength } = req.query;
+
+    // Fetch the total number of products
+    const totalProducts = await Product.countDocuments();
+
+    // Adjust productLength if it's greater than the total number of products
+    productLength = Math.min(parseInt(productLength), totalProducts);
+
+    // Define the aggregation pipeline
+    const pipeline = [
+      {
+        $project: {
+          title: "$name",
+          image: "$image",
+          price: "$price",
+          quantity: "$quantity",
+          discount: { $ifNull: ["$discount", 0] }, // Ensure discount defaults to 0 if it's null
+          slug: "$slug",
+          productGalleryImageUrls: {
+            $arrayElemAt: ["$productGalleryImageUrls", 0],
+          }, // Take only the first image URL
+          createdAt: "$createdAt",
+          salesStatus: {
+            $cond: {
+              if: { $gt: ["$quantity", 0] },
+              then: "Sale",
+              else: "unavailable",
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          discountPrice: {
+            $cond: {
+              if: {
+                $or: [{ $eq: ["$discount", null] }, { $eq: ["$discount", 0] }],
+              }, // If discount is null or 0
+              then: null, // Set discountPrice to null
+              else: {
+                $subtract: [
+                  "$price",
+                  { $multiply: ["$price", { $divide: ["$discount", 100] }] }, // Calculate discounted price
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          image: 1,
+          price: 1,
+          discount: 1,
+          discountPrice: 1,
+          quantity: 1,
+          slug: 1,
+          productGalleryImageUrls: 1,
+          createdAt: 1,
+          salesStatus: 1,
+        },
+      },
+      {
+        $limit: productLength, // Limit the number of documents returned
+      },
+    ];
+
+    // Execute aggregation pipeline
+    const data = await Product.aggregate(pipeline);
+
+    // Return response
+    res.status(200).json({
       success: true,
-      available: fetchedData.length,
-      data: data.slice(0, sampleLength),
-      message: "fetched products successfully!",
+      data,
+      totalProducts,
+      message: "Fetched products successfully!",
     });
   } catch (error) {
     console.error(error);

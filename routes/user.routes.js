@@ -12,7 +12,7 @@ const {
   sendOtpToAnyUser,
   veriyAnyOtp,
   resetPassword,
-} = require("../controllers/userController.js");
+} = require("../controllers/user.controllers.js");
 
 const userAuth = require("express").Router();
 const upload = require("multer")();

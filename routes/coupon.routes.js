@@ -5,7 +5,7 @@ const {
   updateCouponStatusById,
   deleteCouponById,
   getUserAllCoupons,
-} = require("../controllers/couponController");
+} = require("../controllers/coupon.controllers.js");
 
 const couponRoute = require("express").Router();
 const upload = require("multer")();

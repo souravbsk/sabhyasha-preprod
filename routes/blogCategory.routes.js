@@ -4,7 +4,7 @@ const {
   getCategoryById,
   updateCategoryById,
   deleteCategoryById,
-} = require("../controllers/blogCategoryController");
+} = require("../controllers/blogCategory.controllers.js");
 
 const blogCategoryRoute = require("express").Router();
 const upload = require("multer")();

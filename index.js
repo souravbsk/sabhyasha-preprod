@@ -53,6 +53,7 @@ const { mediaRoute } = require("./routes/media.routes.js");
 const { profileRouter } = require("./routes/profile.routes.js");
 const { cartRouter } = require("./routes/cart.routes.js");
 const { wishListRouter } = require("./routes/wishlist.routes.js");
+const { adminRouter } = require("./routes/admin.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -71,7 +72,7 @@ app.use("/api/product/category", productCategoryRoute);
 app.use("/api/product/subcategory", productSubCategoryRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/store", storeRoute);
-app.use("/api", productRoute);
+app.use("/api/product", productRoute);
 // prodcut api end
 
 // address api start
@@ -91,6 +92,9 @@ app.use("/api/auth", userAuth);
 // wishlist and cart api
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishListRouter);
+
+// admin api
+app.use("/api/admin", adminRouter);
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);

@@ -3,7 +3,7 @@ const {
   getCartItems,
   updateItem,
   removeItem,
-} = require("../controllers/cartController");
+} = require("../controllers/cart.controllers.js");
 const { verifyJwt } = require("../middlewares/verifyJWT");
 
 const cartRouter = require("express").Router();

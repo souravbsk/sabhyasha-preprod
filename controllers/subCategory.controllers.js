@@ -94,12 +94,12 @@ const updateSubCategoryById = async (req, res) => {
       return res.status(400).json({ error: "Subcategory ID is required" });
     }
 
-    const { name, parentCategoryId, productCategoryId, image } = req.body;
+    const { name, parentCategoryId, productCategoryId,images } = req.body;
     const updatedAt = new Date();
 
     let imageURL;
-    if (image) {
-      imageURL = image;
+    if (images) {
+      imageURL = images;
     } else {
       try {
         await uploadToS3("SubCategory")(req, res);
