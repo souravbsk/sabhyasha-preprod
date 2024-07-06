@@ -2,7 +2,7 @@ const { ObjectId } = require("mongodb");
 const { Product } = require("../models/productModel");
 const { wishlists } = require("../models/wishListModel");
 
-const addItem = async (req, res) => {
+const addProduct = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = new ObjectId(req.decoded.id);
@@ -27,7 +27,7 @@ const addItem = async (req, res) => {
   }
 };
 
-const getWishListItems = async (req, res) => {
+const getWishListProducts = async (req, res) => {
   try {
     const userId = new ObjectId(req.decoded.id);
     const userWishlist = await wishlists.findOne({ userId: userId });
@@ -41,7 +41,7 @@ const getWishListItems = async (req, res) => {
   }
 };
 
-const removeItem = async (req, res) => {
+const removeProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
     const userId = new ObjectId(req.decoded.id);
@@ -57,7 +57,7 @@ const removeItem = async (req, res) => {
 };
 
 module.exports = {
-  addItem,
-  removeItem,
-  getWishListItems,
+  addProduct,
+  removeProduct,
+  getWishListProducts,
 };
