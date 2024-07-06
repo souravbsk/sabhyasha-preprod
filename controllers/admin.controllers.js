@@ -1,4 +1,6 @@
 const { users } = require("../models/userModel.js");
+const { wishlists } = require("../models/wishListModel");
+const { carts } = require("../models/cartModel");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -83,10 +85,56 @@ const unblockUser = async (req, res) => {
   }
 };
 
+const viewUser = async (req, res) => {
+  try {
+    const user = await users.findById(req.params.userId).catch((err) => {
+      console.log(err);
+      res
+        .status(500)
+        .json({ success: false, message: "Something went wrong!" });
+    });
+    res.json({ success: true, user: user._doc });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Something went wrong!" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    await users.findByIdAndDelete(req.params.userId).catch((err) => {
+      console.log(err);
+      res
+        .status(500)
+        .json({ success: false, message: "Something went wrong!" });
+    });
+    await carts.findOneAndDelete({ userId: req.params.userId }).catch((err) => {
+      console.log(err);
+      res
+        .status(500)
+        .json({ success: false, message: "Something went wrong!" });
+    });
+    await wishlists
+      .findOneAndDelete({ userId: req.params.userId })
+      .catch((err) => {
+        console.log(err);
+        res
+          .status(500)
+          .json({ success: false, message: "Something went wrong!" });
+      });
+    res.json({ success: true, message: "User is now deleted" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Something went wrong!" });
+  }
+};
+
 module.exports = {
   getAllUsers,
   promoteUser,
   demoteUser,
   blockUser,
   unblockUser,
+  viewUser,
+  deleteUser,
 };
