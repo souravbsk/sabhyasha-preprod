@@ -6,7 +6,10 @@ const userModel = new mongoose.Schema({
   email: String,
   avatar: String,
   mobile: String,
-  role: String,
+  role: {
+    type: String,
+    default: "user",
+  },
   isAdmin: {
     type: Boolean,
     default: false,
