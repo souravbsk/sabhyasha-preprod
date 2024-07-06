@@ -27,7 +27,7 @@ const updateUserRole = async (req, res) => {
       .findByIdAndUpdate(req.params.userId, {
         $set: {
           isAdmin: !status,
-          role: "admin",
+          role: !status ? "admin" : "user",
         },
       })
       .catch((err) => {
