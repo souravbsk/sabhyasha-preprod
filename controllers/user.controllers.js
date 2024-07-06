@@ -17,75 +17,59 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-const promoteUser = async (req, res) => {
+const updateUserRole = async (req, res) => {
   try {
+    const userId = req.params.userId;
+    const status = await users.findById(userId).then((user) => {
+      return user.isAdmin;
+    });
     await users
-      .findByIdAndUpdate(req.params.userId, { isAdmin: true })
+      .findByIdAndUpdate(req.params.userId, {
+        $set: {
+          isAdmin: !status,
+          role: "admin",
+        },
+      })
       .catch((err) => {
         console.log(err);
         res
           .status(500)
           .json({ success: false, message: "Something went wrong!" });
       });
-    res.json({ success: true, message: "User is now an admin" });
+    res.json({
+      success: true,
+      message: !status ? "User is now an admin" : "User removed as admin",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Something went wrong!" });
   }
 };
 
-const demoteUser = async (req, res) => {
+const blockStatus = async (req, res) => {
   try {
+    const status = await users.findById(req.params.userId).then((user) => {
+      return user.isBlocked;
+    });
     await users
-      .findByIdAndUpdate(req.params.userId, { isAdmin: false })
+      .findByIdAndUpdate(req.params.userId, { isBlocked: !status })
       .catch((err) => {
         console.log(err);
         res
           .status(500)
           .json({ success: false, message: "Something went wrong!" });
       });
-    res.json({ success: true, message: "User is now an admin" });
+    res.json({
+      success: true,
+      message: !status ? "User is now blocked" : "User is now unblocked",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Something went wrong!" });
   }
 };
 
-const blockUser = async (req, res) => {
-  try {
-    await users
-      .findByIdAndUpdate(req.params.userId, { isBlocked: true })
-      .catch((err) => {
-        console.log(err);
-        res
-          .status(500)
-          .json({ success: false, message: "Something went wrong!" });
-      });
-    res.json({ success: true, message: "User is now blocked" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Something went wrong!" });
-  }
-};
-
-const unblockUser = async (req, res) => {
-  try {
-    await users
-      .findByIdAndUpdate(req.params.userId, { isBlocked: false })
-      .catch((err) => {
-        console.log(err);
-        res
-          .status(500)
-          .json({ success: false, message: "Something went wrong!" });
-      });
-    res.json({ success: true, message: "User is now unblocked" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Something went wrong!" });
-  }
-};
-
-const viewUser = async (req, res) => {
+const viewUserById = async (req, res) => {
   try {
     const user = await users.findById(req.params.userId).catch((err) => {
       console.log(err);
@@ -131,10 +115,8 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   getAllUsers,
-  promoteUser,
-  demoteUser,
-  blockUser,
-  unblockUser,
-  viewUser,
+  updateUserRole,
+  blockStatus,
+  viewUserById,
   deleteUser,
 };

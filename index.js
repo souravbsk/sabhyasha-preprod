@@ -53,7 +53,7 @@ const { mediaRoute } = require("./routes/media.routes.js");
 const { profileRouter } = require("./routes/profile.routes.js");
 const { cartRouter } = require("./routes/cart.routes.js");
 const { wishListRouter } = require("./routes/wishlist.routes.js");
-const { adminRouter } = require("./routes/admin.routes.js");
+const { userRouter } = require("./routes/user.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -93,8 +93,8 @@ app.use("/api/auth", userAuth);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishListRouter);
 
-// admin api
-app.use("/api/admin", adminRouter);
+// user api
+app.use("/api/user", userRouter);
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);
