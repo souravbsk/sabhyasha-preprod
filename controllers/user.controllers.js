@@ -46,7 +46,9 @@ const updateUserRole = async (req, res) => {
 
     // If the user does not exist, return a 404 response
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Toggle the admin status
@@ -71,7 +73,6 @@ const updateUserRole = async (req, res) => {
     res.status(500).json({ success: false, message: "Something went wrong!" });
   }
 };
-
 
 const blockStatus = async (req, res) => {
   try {
@@ -141,10 +142,85 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const checkIsAdmin = async (req, res) => {
+  try {
+    const email = req.params.email;
+    console.log(email);
+
+    // Ensure the authenticated user's email matches the requested email
+    if (req.decoded?.email !== email) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized: Access denied" });
+    }
+
+    // Find user by email
+    const user = await users.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check if user is admin
+    const isAdmin = user.role === "admin";
+
+    // Prepare response
+    const result = {
+      success: true,
+      admin: isAdmin,
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ success: false, message: "Something went wrong!" });
+  }
+};
+const checkIsUser = async (req, res) => {
+  try {
+    const email = req.params.email;
+    console.log(email);
+
+    // Ensure the authenticated user's email matches the requested email
+    if (req.decoded?.email !== email) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized: Access denied" });
+    }
+
+    // Find user by email
+    const user = await users.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check if user is admin
+    const isUser = user.role === "user";
+
+    // Prepare response
+    const result = {
+      success: true,
+      user: isUser,
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error checking User status:", error);
+    res.status(500).json({ success: false, message: "Something went wrong!" });
+  }
+};
+
 module.exports = {
   getAllUsers,
   updateUserRole,
   blockStatus,
   viewUserById,
   deleteUser,
+  checkIsAdmin,
+  checkIsUser,
 };

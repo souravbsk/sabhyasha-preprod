@@ -113,6 +113,7 @@ const logoutUser = (req, res) => {
 
 const checkAuth = async (req, res) => {
   try {
+    console.log('first')
     const decoded = req.decoded;
 
     const userEmail = decoded?.email;
@@ -121,9 +122,10 @@ const checkAuth = async (req, res) => {
     if (userEmail && userId) {
       const existingUser = await users.findOne(
         { email: userEmail, _id: userId },
-        "email avatar username" // Specify fields to include
+        "email avatar username role" // Specify fields to include
       );
 
+      console.log(existingUser)
       if (existingUser) {
         res.status(200).json({ success: true, user: existingUser });
       } else {

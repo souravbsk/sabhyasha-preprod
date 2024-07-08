@@ -13,6 +13,7 @@ const {
   veriyAnyOtp,
   resetPassword,
 } = require("../controllers/auth.controllers.js");
+const { verifyAdmin } = require("../middlewares/verifyAdmin.js");
 
 const userAuth = require("express").Router();
 const upload = require("multer")();
