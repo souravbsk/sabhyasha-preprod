@@ -44,4 +44,3 @@ userAuth.post("/get-otp", sendOtpToAnyUser);
 userAuth.post("/verify-otp", veriyAnyOtp);
 
 module.exports = { userAuth };
-// fdsf
