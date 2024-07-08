@@ -2,25 +2,34 @@ const { ObjectId } = require("mongodb");
 const { Product } = require("../models/productModel");
 const { wishlists } = require("../models/wishListModel");
 
-const addProduct = async (req, res) => {
+// toggle : add or remove product from wishlist
+
+const toogleProductInWishList = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = new ObjectId(req.decoded.id);
-    let wishlist = await wishlists.findOne({ userId });
-    if (wishlist) {
-      if (!wishlist.products.includes(productId)) {
-        wishlist.products.push(productId);
+    let isWishlistExists = await wishlists.findOne({ userId });
+    if (isWishlistExists) {
+      if (isWishlistExists.products.includes(productId)) {
+        await wishlists.findByIdAndUpdate(isWishlistExists._id, {
+          $pull: { products: productId },
+        });
+        return res
+          .status(200)
+          .send({ success: true, message: "Product removed from wishlist!" });
+      } else {
+        isWishlistExists.products.push(productId);
+        await isWishlistExists.save();
+        return res
+          .status(200)
+          .send({ success: true, message: "Product added to wishlist!" });
       }
     } else {
-      wishlist = new wishlists({
-        userId,
-        products: [productId],
-      });
+      await wishlists.create({ userId: userId, products: [productId] });
+      return res
+        .status(200)
+        .send({ success: true, message: "Product added to wishlist!" });
     }
-    await wishlist.save();
-    res
-      .status(200)
-      .send({ success: true, message: "Product added to wishlist!" });
   } catch (error) {
     console.log(error);
     res.status(500).send({ success: false, message: "Server error" });
@@ -41,23 +50,7 @@ const getWishListProducts = async (req, res) => {
   }
 };
 
-const removeProduct = async (req, res) => {
-  try {
-    const productId = req.params.productId;
-    const userId = new ObjectId(req.decoded.id);
-    await wishlists.findOneAndUpdate(
-      { userId: userId },
-      { $pull: { products: productId } }
-    );
-    res.status(200).send({ success: true, message: "Product removed" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ success: false, message: "Server error" });
-  }
-};
-
 module.exports = {
-  addProduct,
-  removeProduct,
+  toogleProductInWishList,
   getWishListProducts,
 };
