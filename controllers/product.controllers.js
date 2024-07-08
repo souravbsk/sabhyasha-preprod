@@ -621,7 +621,7 @@ const deleteProductById = async (req, res) => {
 // show product for user ui
 const showProducts = async (req, res) => {
   try {
-    console.log(req.query);
+    // console.log(req.query);
     let { productLength } = req.query;
 
     // Fetch the total number of products

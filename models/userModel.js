@@ -6,6 +6,18 @@ const userModel = new mongoose.Schema({
   email: String,
   avatar: String,
   mobile: String,
+  role: {
+    type: String,
+    default: "user",
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
   username: String,
   googleId: String,
   otp: String,

@@ -32,6 +32,7 @@ const registerUser = async (req, res) => {
       displayName: displayName,
       isEmailVerify: false,
       role: role,
+      isBlocked: false,
     });
 
     // Save the new user
