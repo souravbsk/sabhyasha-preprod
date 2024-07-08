@@ -4,12 +4,32 @@ const { carts } = require("../models/cartModel");
 
 const getAllUsers = async (req, res) => {
   try {
-    const usersList = await users.find({}).catch((err) => {
-      console.log(err);
-      res
-        .status(500)
-        .json({ success: false, message: "Something went wrong!" });
-    });
+    const usersList = await users.aggregate([
+      {
+        $project: {
+          password: 0,
+          productsBought: 0,
+          billingAddressIds: 0,
+          shippingAddressIds: 0,
+          passwordResetToken: 0,
+          googleId: 0,
+        },
+      },
+      {
+        $addFields: {
+          roleOrder: {
+            $cond: { if: { $eq: ["$role", "admin"] }, then: 1, else: 2 },
+          },
+        },
+      },
+      {
+        $sort: { roleOrder: 1 },
+      },
+      {
+        $project: { roleOrder: 0 },
+      },
+    ]);
+
     res.json({ success: true, users: usersList });
   } catch (error) {
     console.log(error);
@@ -20,25 +40,31 @@ const getAllUsers = async (req, res) => {
 const updateUserRole = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const status = await users.findById(userId).then((user) => {
-      return user.isAdmin;
+
+    // Find the user by ID
+    const user = await users.findById(userId);
+
+    // If the user does not exist, return a 404 response
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Toggle the admin status
+    const newStatus = !user.isAdmin;
+    const newRole = newStatus ? "admin" : "user";
+
+    // Update the user's role and admin status
+    await users.findByIdAndUpdate(userId, {
+      $set: {
+        isAdmin: newStatus,
+        role: newRole,
+      },
     });
-    await users
-      .findByIdAndUpdate(req.params.userId, {
-        $set: {
-          isAdmin: !status,
-          role: !status ? "admin" : "user",
-        },
-      })
-      .catch((err) => {
-        console.log(err);
-        res
-          .status(500)
-          .json({ success: false, message: "Something went wrong!" });
-      });
+
+    // Return a success response
     res.json({
       success: true,
-      message: !status ? "User is now an admin" : "User removed as admin",
+      message: newStatus ? "User is now an admin" : "User removed as admin",
     });
   } catch (error) {
     console.log(error);
@@ -46,13 +72,15 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+
 const blockStatus = async (req, res) => {
   try {
-    const status = await users.findById(req.params.userId).then((user) => {
+    const userId = req.params.userId;
+    const status = await users.findById(userId).then((user) => {
       return user.isBlocked;
     });
     await users
-      .findByIdAndUpdate(req.params.userId, { isBlocked: !status })
+      .findByIdAndUpdate(userId, { isBlocked: !status })
       .catch((err) => {
         console.log(err);
         res
