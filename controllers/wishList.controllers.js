@@ -5,22 +5,24 @@ const { productParentCategory } = require("../models/parentCategoryModel");
 
 // toggle : add or remove product from wishlist
 
-const toogleProductInWishList = async (req, res) => {
+const toggleProductInWishList = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = new ObjectId(req.decoded.id);
-    let isWishlistExists = await wishlists.findOne({ userId });
-    if (isWishlistExists) {
-      if (isWishlistExists.products.includes(productId)) {
-        await wishlists.findByIdAndUpdate(isWishlistExists._id, {
+    let wishlist = await wishlists.findOne({ userId: userId });
+
+    if (wishlist) {
+      if (wishlist.products.includes(productId)) {
+        await wishlists.findByIdAndUpdate(wishlist._id, {
           $pull: { products: productId },
         });
         return res
           .status(200)
           .send({ success: true, message: "Product removed from wishlist!" });
       } else {
-        isWishlistExists.products.push(productId);
-        await isWishlistExists.save();
+        await wishlists.findByIdAndUpdate(wishlist._id, {
+          $push: { products: productId },
+        });
         return res
           .status(200)
           .send({ success: true, message: "Product added to wishlist!" });
@@ -32,7 +34,7 @@ const toogleProductInWishList = async (req, res) => {
         .send({ success: true, message: "Product added to wishlist!" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({ success: false, message: "Server error" });
   }
 };
@@ -42,9 +44,7 @@ const getWishListProducts = async (req, res) => {
     const userId = new ObjectId(req.decoded.id);
     const userWishlist = await wishlists.findOne({ userId: userId });
     if (!userWishlist) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Wishlist not found" });
+      return res.send({ success: true, data: [] });
     }
 
     const wishlistProducts = await Promise.all(
@@ -73,6 +73,6 @@ const getWishListProducts = async (req, res) => {
 };
 
 module.exports = {
-  toogleProductInWishList,
+  toggleProductInWishList,
   getWishListProducts,
 };
