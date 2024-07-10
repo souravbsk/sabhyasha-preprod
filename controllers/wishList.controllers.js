@@ -1,28 +1,40 @@
 const { ObjectId } = require("mongodb");
 const { Product } = require("../models/productModel");
 const { wishlists } = require("../models/wishListModel");
+const { productParentCategory } = require("../models/parentCategoryModel");
 
-const addProduct = async (req, res) => {
+// toggle : add or remove product from wishlist
+
+const toggleProductInWishList = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = new ObjectId(req.decoded.id);
-    let wishlist = await wishlists.findOne({ userId });
+    let wishlist = await wishlists.findOne({ userId: userId });
+
     if (wishlist) {
-      if (!wishlist.products.includes(productId)) {
-        wishlist.products.push(productId);
+      if (wishlist.products.includes(productId)) {
+        await wishlists.findByIdAndUpdate(wishlist._id, {
+          $pull: { products: productId },
+        });
+        return res
+          .status(200)
+          .send({ success: true, message: "Product removed from wishlist!" });
+      } else {
+        await wishlists.findByIdAndUpdate(wishlist._id, {
+          $push: { products: productId },
+        });
+        return res
+          .status(200)
+          .send({ success: true, message: "Product added to wishlist!" });
       }
     } else {
-      wishlist = new wishlists({
-        userId,
-        products: [productId],
-      });
+      await wishlists.create({ userId: userId, products: [productId] });
+      return res
+        .status(200)
+        .send({ success: true, message: "Product added to wishlist!" });
     }
-    await wishlist.save();
-    res
-      .status(200)
-      .send({ success: true, message: "Product added to wishlist!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({ success: false, message: "Server error" });
   }
 };
@@ -31,33 +43,36 @@ const getWishListProducts = async (req, res) => {
   try {
     const userId = new ObjectId(req.decoded.id);
     const userWishlist = await wishlists.findOne({ userId: userId });
-    const wishlistProducts = (await Product.find({})).filter((product) => {
-      return userWishlist.products.includes(product._id);
-    });
-    res.status(200).send({ success: true, data: wishlistProducts });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ success: false, message: "Server error" });
-  }
-};
+    if (!userWishlist) {
+      return res.send({ success: true, data: [] });
+    }
 
-const removeProduct = async (req, res) => {
-  try {
-    const productId = req.params.productId;
-    const userId = new ObjectId(req.decoded.id);
-    await wishlists.findOneAndUpdate(
-      { userId: userId },
-      { $pull: { products: productId } }
+    const wishlistProducts = await Promise.all(
+      userWishlist.products.map(async (productId) => {
+        const product = await Product.findById(productId);
+        if (!product) return null;
+
+        const category = await productParentCategory.findById(
+          product.parent_category_id
+        );
+        const categoryName = category ? category.name : "Unknown Category";
+
+        return { ...product.toObject(), categoryName };
+      })
     );
-    res.status(200).send({ success: true, message: "Product removed" });
+
+    const filteredProducts = wishlistProducts.filter(
+      (product) => product !== null
+    );
+
+    res.status(200).send({ success: true, data: filteredProducts });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({ success: false, message: "Server error" });
   }
 };
 
 module.exports = {
-  addProduct,
-  removeProduct,
+  toggleProductInWishList,
   getWishListProducts,
 };
