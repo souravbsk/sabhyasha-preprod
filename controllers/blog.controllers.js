@@ -116,7 +116,7 @@ const getAllBlogs = async (req, res) => {
       },
     ];
 
-    const blogsData = await blogs.aggregate(pipeline);
+    const blogsData = await blogs?.aggregate(pipeline);
 
     res.status(200).json(blogsData);
   } catch (error) {
