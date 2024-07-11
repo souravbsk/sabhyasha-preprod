@@ -821,6 +821,148 @@ const viewProduct = async (req, res) => {
   }
 };
 
+const getDeatailedProductCountByCategoryWise = async (req, res) => {
+  try {
+    // Step 1: Get counts for each subcategory
+    const subcategoryCounts = await Product.aggregate([
+      {
+        $group: {
+          _id: {
+            parent_category_id: "$parent_category_id",
+            category_id: "$category_id",
+            subcategory_id: "$subcategory_id",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Step 2: Get all parent categories
+    const parentCategories = await productParentCategory.find().lean();
+
+    // Step 3: Get all categories
+    const categories = await productCategory.find().lean();
+
+    // Step 4: Get all subcategories
+    const subcategories = await SubCategory.find().lean();
+
+    // Step 5: Build the result structure
+    const result = parentCategories.reduce((acc, parentCat) => {
+      acc[parentCat.name] = {
+        id: parentCat._id,
+        data: {},
+        count: 0,
+      };
+
+      const relevantCategories = categories.filter(
+        (cat) => cat.parentCategoryId.toString() === parentCat._id.toString()
+      );
+
+      relevantCategories.forEach((cat) => {
+        acc[parentCat.name].data[cat.name] = {
+          id: cat._id,
+          data: {},
+          count: 0,
+        };
+
+        const relevantSubcategories = subcategories.filter(
+          (subcat) => subcat.productCategoryId.toString() === cat._id.toString()
+        );
+
+        relevantSubcategories.forEach((subcat) => {
+          const countData = subcategoryCounts.find(
+            (sc) =>
+              sc._id.parent_category_id.toString() ===
+                parentCat._id.toString() &&
+              sc._id.category_id.toString() === cat._id.toString() &&
+              sc._id.subcategory_id.toString() === subcat._id.toString()
+          );
+
+          const count = countData ? countData.count : 0;
+
+          acc[parentCat.name].data[cat.name].data[subcat.name] = {
+            id: subcat._id,
+            count: count,
+          };
+
+          acc[parentCat.name].data[cat.name].count += count;
+          acc[parentCat.name].count += count;
+        });
+      });
+
+      return acc;
+    }, {});
+
+    res.send({ success: true, data: result });
+  } catch (error) {
+    console.error("Error in getDeatailedProductCountByCategoryWise:", error);
+    res.status(500).send({ success: false, error: "Internal server error" });
+  }
+};
+
+const filterProducts = async (req, res) => {
+  try {
+    const { parentCat, productCat, subCat, priceRange, stockStatus } = req.body;
+
+    const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 10 if not provided
+
+    // Build the query object
+    let query = {};
+
+    // Filter by parent category
+    if (parentCat && parentCat.length > 0 && !parentCat.includes("All")) {
+      query.parent_category_id = { $in: parentCat };
+    }
+
+    // Filter by product category
+    if (productCat && productCat.length > 0 && !productCat.includes("All")) {
+      query.category_id = { $in: productCat };
+    }
+
+    // Filter by subcategory
+    if (subCat && subCat.length > 0 && !subCat.includes("All")) {
+      query.subcategory_id = { $in: subCat };
+    }
+
+    // Filter by price range
+    if (
+      priceRange &&
+      typeof priceRange.min === "number" &&
+      typeof priceRange.max === "number"
+    ) {
+      query.price = { $gte: priceRange.min, $lte: priceRange.max };
+    }
+
+    // Filter by stock status
+    if (stockStatus) {
+      const stockConditions = [];
+      if (stockStatus.inStock) {
+        stockConditions.push({ quantity: { $gt: 0 } });
+      }
+      if (stockStatus.out_of_stock) {
+        stockConditions.push({ quantity: 0 });
+      }
+      if (stockConditions.length > 0) {
+        query.$or = stockConditions;
+      }
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * pageSize;
+
+    // Fetch the filtered products with pagination
+    const products = await Product.find(query)
+      .skip(skip)
+      .limit(parseInt(pageSize))
+      .exec();
+
+    // Send the response
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching products", error });
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -829,4 +971,6 @@ module.exports = {
   deleteProductById,
   showProducts,
   viewProduct,
+  getDeatailedProductCountByCategoryWise,
+  filterProducts,
 };
