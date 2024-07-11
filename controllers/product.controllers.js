@@ -605,6 +605,22 @@ const deleteProductById = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // show product for user ui
 const showProducts = async (req, res) => {
   try {
@@ -874,6 +890,178 @@ const searchByProductName = async (req, res) => {
   }
 };
 
+const getDeatailedProductCountByCategoryWise = async (req, res) => {
+  try {
+    // Step 1: Get counts for each subcategory
+    const subcategoryCounts = await Product.aggregate([
+      {
+        $group: {
+          _id: {
+            parent_category_id: "$parent_category_id",
+            category_id: "$category_id",
+            subcategory_id: "$subcategory_id",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Step 2: Get all parent categories
+    const parentCategories = await productParentCategory.find().lean();
+
+    // Step 3: Get all categories
+    const categories = await productCategory.find().lean();
+
+    // Step 4: Get all subcategories
+    const subcategories = await SubCategory.find().lean();
+
+    // Step 5: Build the result structure
+    const result = parentCategories.reduce((acc, parentCat) => {
+      acc[parentCat.slug] = {
+        id: parentCat._id,
+        slug: parentCat.slug,
+        name: parentCat.name, // Include parent category name
+        data: {},
+        count: 0,
+      };
+
+      const relevantCategories = categories.filter(
+        (cat) => cat.parentCategoryId.toString() === parentCat._id.toString()
+      );
+
+      relevantCategories.forEach((cat) => {
+        acc[parentCat.slug].data[cat.slug] = {
+          id: cat._id,
+          slug: cat.slug,
+          name: cat.name, // Include category name
+          data: {},
+          count: 0,
+        };
+
+        const relevantSubcategories = subcategories.filter(
+          (subcat) => subcat.productCategoryId.toString() === cat._id.toString()
+        );
+
+        relevantSubcategories.forEach((subcat) => {
+          const countData = subcategoryCounts.find(
+            (sc) =>
+              sc._id.parent_category_id.toString() ===
+                parentCat._id.toString() &&
+              sc._id.category_id.toString() === cat._id.toString() &&
+              sc._id.subcategory_id.toString() === subcat._id.toString()
+          );
+
+          const count = countData ? countData.count : 0;
+
+          acc[parentCat.slug].data[cat.slug].data[subcat.slug] = {
+            id: subcat._id,
+            slug: subcat.slug,
+            name: subcat.name, // Include subcategory name
+            count: count,
+          };
+
+          acc[parentCat.slug].data[cat.slug].count += count;
+          acc[parentCat.slug].count += count;
+        });
+      });
+
+      return acc;
+    }, {});
+
+    console.log(result);
+
+    res.send({ success: true, data: result });
+  } catch (error) {
+    console.error("Error in getDeatailedProductCountByCategoryWise:", error);
+    res.status(500).send({ success: false, error: "Internal server error" });
+  }
+};
+
+
+const filterProducts = async (req, res) => {
+  try {
+    const { parentCat, productCat, subCat, searchKeyword, priceRange, stockStatus } = req.body;
+    console.log(parentCat);
+
+    const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 9 if not provided
+
+    // Build the query object
+    let query = {};
+
+    // Function to get IDs from slug
+    const getIdsFromSlugs = async (slugArray, model) => {
+      if (!slugArray || slugArray.length === 0 || slugArray.includes("All")) {
+        return [];
+      }
+      const result = await model.find({ slug: { $in: slugArray } }).lean();
+      return result.map(item => item._id.toString());
+    };
+
+    // Fetch IDs for parent categories, product categories, and subcategories
+    const parentCatIds = await getIdsFromSlugs(parentCat, productParentCategory);
+    const productCatIds = await getIdsFromSlugs(productCat, productCategory);
+    const subCatIds = await getIdsFromSlugs(subCat, SubCategory);
+
+    // Filter by parent category IDs
+    if (parentCatIds.length > 0) {
+      query.parent_category_id = { $in: parentCatIds };
+    }
+
+    // Filter by product category IDs
+    if (productCatIds.length > 0) {
+      query.category_id = { $in: productCatIds };
+    }
+
+    // Filter by subcategory IDs
+    if (subCatIds.length > 0) {
+      query.subcategory_id = { $in: subCatIds };
+    }
+
+    // Filter by price range
+    if (priceRange && typeof priceRange.min === "number" && typeof priceRange.max === "number") {
+      query.price = { $gte: priceRange.min, $lte: priceRange.max };
+    }
+
+    // Filter by stock status
+    if (stockStatus) {
+      const stockConditions = [];
+      if (stockStatus.inStock) {
+        stockConditions.push({ quantity: { $gt: 0 } });
+      }
+      if (stockStatus.out_of_stock) {
+        stockConditions.push({ quantity: 0 });
+      }
+      if (stockConditions.length > 0) {
+        query.$or = stockConditions;
+      }
+    }
+
+    // Filter by searchKeyword and productName
+    if (searchKeyword) {
+      query.$or = [
+        { name: { $regex: searchKeyword, $options: "i" } },
+        // Add more fields to search if needed, e.g., productDescription
+      ];
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * pageSize;
+
+    // Fetch the filtered products with pagination
+    const products = await Product.find(query)
+      .skip(skip)
+      .limit(parseInt(pageSize))
+      .exec();
+
+    // Send the response
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching products", error });
+  }
+};
+
+
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -883,4 +1071,6 @@ module.exports = {
   showProducts,
   viewProduct,
   searchByProductName,
+  getDeatailedProductCountByCategoryWise,
+  filterProducts,
 };

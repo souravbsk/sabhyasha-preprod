@@ -43,10 +43,4 @@ const productParentCategory = mongoose.model(
   "productParentCategory"
 );
 
-
-
-
-
-
-
 module.exports = { productParentCategory };
