@@ -319,11 +319,6 @@ const bulkUploadProducts = async (req, res) => {
     // if (!req.file) {
     //   return res.status(400).json({ error: "No file uploaded" });
     // }
-    const parentCategoryCollection =
-      productParentCategory.collection.collectionName;
-    const categoryCollection = productCategory.collection.collectionName;
-    const subCategoryCollection = SubCategory.collection.collectionName;
-    const storeCollectionName = Stores.collection.collectionName;
     const existingSlugs = await Product.find({}).distinct("slug");
 
     // console.log(storeCollectionName);
@@ -340,13 +335,6 @@ const bulkUploadProducts = async (req, res) => {
       productCategory.find({}, { _id: 1, name: 1 }).lean(),
       SubCategory.find({}, { _id: 1, name: 1 }).lean(),
     ]);
-
-    console.log(
-      storeCollectionResult,
-      parentCategoryResult,
-      categoryResult,
-      subCategoryResult
-    );
 
     // console.log(parentCategoryResult);
 
@@ -454,7 +442,6 @@ const bulkUploadProducts = async (req, res) => {
           normalizedItem[removeGapFromValue("ProductTitle")],
           existingSlugs
         );
-
         // If uniqueSlug is different from generateSlugUrl, it means there was a conflict
         // and a unique slug was generated.
 
@@ -485,7 +472,7 @@ const bulkUploadProducts = async (req, res) => {
         const newProduct = {
           name: normalizedItem[removeGapFromValue("ProductTitle")],
           parent_category_id: excelToCategoryId(
-            normalizedItem[removeGapFromValue("ParentCategory")],
+            normalizedItem[removeGapFromValue("ParentCategory")] || null,
             parentCategoryResult
           ),
           category_id: excelToCategoryId(
