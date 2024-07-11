@@ -618,6 +618,22 @@ const deleteProductById = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // show product for user ui
 const showProducts = async (req, res) => {
   try {
@@ -851,6 +867,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
       acc[parentCat.slug] = {
         id: parentCat._id,
         slug: parentCat.slug,
+        name: parentCat.name, // Include parent category name
         data: {},
         count: 0,
       };
@@ -863,6 +880,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
         acc[parentCat.slug].data[cat.slug] = {
           id: cat._id,
           slug: cat.slug,
+          name: cat.name, // Include category name
           data: {},
           count: 0,
         };
@@ -885,6 +903,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
           acc[parentCat.slug].data[cat.slug].data[subcat.slug] = {
             id: subcat._id,
             slug: subcat.slug,
+            name: subcat.name, // Include subcategory name
             count: count,
           };
 
@@ -908,34 +927,45 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
 
 const filterProducts = async (req, res) => {
   try {
-    const { parentCat, productCat, subCat, priceRange, stockStatus } = req.body;
+    const { parentCat, productCat, subCat, searchKeyword, priceRange, stockStatus } = req.body;
+    console.log(parentCat);
 
-    const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 10 if not provided
+    const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 9 if not provided
 
     // Build the query object
     let query = {};
 
-    // Filter by parent category
-    if (parentCat && parentCat.length > 0 && !parentCat.includes("All")) {
-      query.parent_category_id = { $in: parentCat };
+    // Function to get IDs from slug
+    const getIdsFromSlugs = async (slugArray, model) => {
+      if (!slugArray || slugArray.length === 0 || slugArray.includes("All")) {
+        return [];
+      }
+      const result = await model.find({ slug: { $in: slugArray } }).lean();
+      return result.map(item => item._id.toString());
+    };
+
+    // Fetch IDs for parent categories, product categories, and subcategories
+    const parentCatIds = await getIdsFromSlugs(parentCat, productParentCategory);
+    const productCatIds = await getIdsFromSlugs(productCat, productCategory);
+    const subCatIds = await getIdsFromSlugs(subCat, SubCategory);
+
+    // Filter by parent category IDs
+    if (parentCatIds.length > 0) {
+      query.parent_category_id = { $in: parentCatIds };
     }
 
-    // Filter by product category
-    if (productCat && productCat.length > 0 && !productCat.includes("All")) {
-      query.category_id = { $in: productCat };
+    // Filter by product category IDs
+    if (productCatIds.length > 0) {
+      query.category_id = { $in: productCatIds };
     }
 
-    // Filter by subcategory
-    if (subCat && subCat.length > 0 && !subCat.includes("All")) {
-      query.subcategory_id = { $in: subCat };
+    // Filter by subcategory IDs
+    if (subCatIds.length > 0) {
+      query.subcategory_id = { $in: subCatIds };
     }
 
     // Filter by price range
-    if (
-      priceRange &&
-      typeof priceRange.min === "number" &&
-      typeof priceRange.max === "number"
-    ) {
+    if (priceRange && typeof priceRange.min === "number" && typeof priceRange.max === "number") {
       query.price = { $gte: priceRange.min, $lte: priceRange.max };
     }
 
@@ -953,6 +983,14 @@ const filterProducts = async (req, res) => {
       }
     }
 
+    // Filter by searchKeyword and productName
+    if (searchKeyword) {
+      query.$or = [
+        { name: { $regex: searchKeyword, $options: "i" } },
+        // Add more fields to search if needed, e.g., productDescription
+      ];
+    }
+
     // Calculate skip value for pagination
     const skip = (page - 1) * pageSize;
 
@@ -968,6 +1006,8 @@ const filterProducts = async (req, res) => {
     res.status(500).json({ message: "Error fetching products", error });
   }
 };
+
+
 
 module.exports = {
   createProduct,
