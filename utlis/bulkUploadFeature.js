@@ -3,10 +3,9 @@ const removeGapFromValue = (value) => {
 };
 
 const excelToCategoryId = (excelValue, collectionData) => {
-  const getValue = collectionData.find(
-    (data) => removeGapFromValue(data.name) == removeGapFromValue(excelValue)
+  const getValue = collectionData?.find(
+    (data) => removeGapFromValue(data?.name) == removeGapFromValue(excelValue)
   );
-  console.log(getValue, "fdsfsdaf");
   if (getValue?._id) {
     return getValue?._id.toString();
   } else {

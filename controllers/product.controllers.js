@@ -848,8 +848,9 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
 
     // Step 5: Build the result structure
     const result = parentCategories.reduce((acc, parentCat) => {
-      acc[parentCat.name] = {
+      acc[parentCat.slug] = {
         id: parentCat._id,
+        slug: parentCat.slug,
         data: {},
         count: 0,
       };
@@ -859,8 +860,9 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
       );
 
       relevantCategories.forEach((cat) => {
-        acc[parentCat.name].data[cat.name] = {
+        acc[parentCat.slug].data[cat.slug] = {
           id: cat._id,
+          slug: cat.slug,
           data: {},
           count: 0,
         };
@@ -880,18 +882,21 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
 
           const count = countData ? countData.count : 0;
 
-          acc[parentCat.name].data[cat.name].data[subcat.name] = {
+          acc[parentCat.slug].data[cat.slug].data[subcat.slug] = {
             id: subcat._id,
+            slug: subcat.slug,
             count: count,
           };
 
-          acc[parentCat.name].data[cat.name].count += count;
-          acc[parentCat.name].count += count;
+          acc[parentCat.slug].data[cat.slug].count += count;
+          acc[parentCat.slug].count += count;
         });
       });
 
       return acc;
     }, {});
+
+    console.log(result);
 
     res.send({ success: true, data: result });
   } catch (error) {
@@ -899,6 +904,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
     res.status(500).send({ success: false, error: "Internal server error" });
   }
 };
+
 
 const filterProducts = async (req, res) => {
   try {
