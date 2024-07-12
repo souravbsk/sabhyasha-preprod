@@ -13,9 +13,11 @@ const toggleProductInWishList = async (req, res) => {
 
     if (wishlist) {
       if (wishlist.products.includes(productId)) {
-        await wishlists.findByIdAndUpdate(wishlist._id, {
-          $pull: { products: productId },
-        });
+        wishlist.products.length === 1
+          ? await wishlists.findByIdAndDelete(wishlist._id)
+          : await wishlists.findByIdAndUpdate(wishlist._id, {
+              $pull: { products: productId },
+            });
         return res
           .status(200)
           .send({ success: true, message: "Product removed from wishlist!" });
