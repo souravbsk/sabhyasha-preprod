@@ -605,27 +605,11 @@ const deleteProductById = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // show product for user ui
 const showProducts = async (req, res) => {
   try {
     // console.log(req.query);
-    let { productLength } = req.query;
+    let { productLength = 15 } = req.query;
 
     // Fetch the total number of products
     const totalProducts = await Product.countDocuments();
@@ -977,14 +961,25 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
   }
 };
 
-
 const filterProducts = async (req, res) => {
   try {
-    const { parentCat, productCat, subCat, searchKeyword, priceRange, stockStatus } = req.body;
-    console.log(parentCat);
+    const {
+      parentCat,
+      productCat,
+      subCat,
+      searchKeyword,
+      priceRange,
+      stockStatus,
+    } = req.body;
+    console.log( productCat,
+      subCat,
+      searchKeyword,
+      priceRange,
+      stockStatus,)
 
     const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 9 if not provided
 
+    console.log(req.query)
     // Build the query object
     let query = {};
 
@@ -994,11 +989,14 @@ const filterProducts = async (req, res) => {
         return [];
       }
       const result = await model.find({ slug: { $in: slugArray } }).lean();
-      return result.map(item => item._id.toString());
+      return result.map((item) => item._id.toString());
     };
 
     // Fetch IDs for parent categories, product categories, and subcategories
-    const parentCatIds = await getIdsFromSlugs(parentCat, productParentCategory);
+    const parentCatIds = await getIdsFromSlugs(
+      parentCat,
+      productParentCategory
+    );
     const productCatIds = await getIdsFromSlugs(productCat, productCategory);
     const subCatIds = await getIdsFromSlugs(subCat, SubCategory);
 
@@ -1018,7 +1016,11 @@ const filterProducts = async (req, res) => {
     }
 
     // Filter by price range
-    if (priceRange && typeof priceRange.min === "number" && typeof priceRange.max === "number") {
+    if (
+      priceRange &&
+      typeof priceRange.min === "number" &&
+      typeof priceRange.max === "number"
+    ) {
       query.price = { $gte: priceRange.min, $lte: priceRange.max };
     }
 
@@ -1047,11 +1049,34 @@ const filterProducts = async (req, res) => {
     // Calculate skip value for pagination
     const skip = (page - 1) * pageSize;
 
-    // Fetch the filtered products with pagination
-    const products = await Product.find(query)
+    // Fetch the filtered products
+    let products = await Product.find(query)
+      .select(
+        "_id name image price quantity productGalleryImageUrls discount slug createdAt"
+      )
       .skip(skip)
       .limit(parseInt(pageSize))
+      .lean()
       .exec();
+
+    // Calculate discountPrice and include title (assuming title is the same as name)
+    products = products.map((product) => {
+      const discount = product.discount || 0;
+      const price = product.price || 0;
+      const discountPrice = discount ? price - (price * discount) / 100 : null;
+      const firstImageUrl =
+        product.productGalleryImageUrls.length > 0
+          ? product?.productGalleryImageUrls[0]
+          : null;
+          const salesStatus = product.quantity > 0 ? "Sale" : "Unavailable";
+      return {
+        ...product,
+        title: product.name, // Assuming title is the same as name
+        discountPrice: discountPrice,
+        productGalleryImageUrls: firstImageUrl,
+        salesStatus:salesStatus,
+      };
+    });
 
     // Send the response
     res.status(200).json(products);
@@ -1060,7 +1085,9 @@ const filterProducts = async (req, res) => {
   }
 };
 
-
+module.exports = {
+  filterProducts,
+};
 
 module.exports = {
   createProduct,

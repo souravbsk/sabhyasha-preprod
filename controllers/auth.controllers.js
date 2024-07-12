@@ -77,7 +77,10 @@ const loginUser = async (req, res, next) => {
         email: user.email,
         id: user?._id,
       },
-      process.env.ACCESS_TOKEN_SECRET
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
+      }
     );
     res.json({ success: true, token: token });
   })(req, res, next);
@@ -91,7 +94,10 @@ const googleLoginCallback = async (req, res) => {
         email: user.email,
         id: user._id,
       },
-      process.env.ACCESS_TOKEN_SECRET
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
+      }
     );
     res.cookie("jwt-token", token);
     res.redirect("http://localhost:5173/store");
@@ -113,7 +119,7 @@ const logoutUser = (req, res) => {
 
 const checkAuth = async (req, res) => {
   try {
-    console.log('first')
+    console.log("first");
     const decoded = req.decoded;
 
     const userEmail = decoded?.email;
@@ -125,7 +131,7 @@ const checkAuth = async (req, res) => {
         "email avatar username role" // Specify fields to include
       );
 
-      console.log(existingUser)
+      console.log(existingUser);
       if (existingUser) {
         res.status(200).json({ success: true, user: existingUser });
       } else {

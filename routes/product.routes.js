@@ -6,12 +6,9 @@ const {
   deleteProductById,
   showProducts,
   viewProduct,
-<<<<<<< HEAD
   searchByProductName,
-=======
   getDeatailedProductCountByCategoryWise,
   filterProducts,
->>>>>>> pavan
 } = require("../controllers/product.controllers.js");
 
 const productRoute = require("express").Router();
@@ -34,12 +31,10 @@ productRoute.delete("/admin/product/:productId", deleteProductById);
 productRoute.get("/user/products", showProducts);
 productRoute.get("/user/product/:productId", viewProduct);
 
-<<<<<<< HEAD
 // filter search product 
 productRoute.get("/search-products",searchByProductName)
 
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById);
-=======
 // getCount of products by category, subcategory, parentcategory
 productRoute.get(
   "/user/products/detailedcount",
@@ -50,6 +45,5 @@ productRoute.get(
 productRoute.put("/filter", filterProducts);
 
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
->>>>>>> pavan
 
 module.exports = { productRoute };
