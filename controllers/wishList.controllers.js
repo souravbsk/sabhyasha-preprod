@@ -74,7 +74,27 @@ const getWishListProducts = async (req, res) => {
   }
 };
 
+const removeById = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const userId = new ObjectId(req.decoded?.id);
+    const wishList = await wishlists.findOne({ userId: userId });
+    wishList.products.length === 1
+      ? await wishlists.findByIdAndDelete(wishList._id)
+      : await wishlists.findByIdAndUpdate(wishList._id, {
+          $pull: { products: productId },
+        });
+    return res
+      .status(200)
+      .send({ success: true, message: "Product removed from wishlist!" });
+  } catch (error) {
+    console.log(error);
+    res.send({ success: false, message: "Something went wrong!" });
+  }
+};
+
 module.exports = {
   toggleProductInWishList,
   getWishListProducts,
+  removeById,
 };

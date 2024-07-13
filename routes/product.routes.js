@@ -9,6 +9,9 @@ const {
   searchByProductName,
   getDeatailedProductCountByCategoryWise,
   filterProducts,
+  pushProductIntoNotified,
+  getInfoOfNotifiedProducts,
+  popProductFromNotifications,
 } = require("../controllers/product.controllers.js");
 
 const productRoute = require("express").Router();
@@ -31,8 +34,8 @@ productRoute.delete("/admin/product/:productId", deleteProductById);
 productRoute.get("/user/products", showProducts);
 productRoute.get("/user/product/:productId", viewProduct);
 
-// filter search product 
-productRoute.get("/search-products",searchByProductName)
+// filter search product
+productRoute.get("/search-products", searchByProductName);
 
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById);
 // getCount of products by category, subcategory, parentcategory
@@ -43,6 +46,11 @@ productRoute.get(
 
 // get products by filter
 productRoute.put("/filter", filterProducts);
+
+// product notification routes
+productRoute.post("/notification/:productId", pushProductIntoNotified);
+productRoute.get("/notification", getInfoOfNotifiedProducts);
+productRoute.delete("/notification/:productId", popProductFromNotifications);
 
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
 
