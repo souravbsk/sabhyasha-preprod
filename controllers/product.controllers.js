@@ -14,6 +14,7 @@ const excelToBoolean = require("../utlis/excelToBoolean");
 const { slugGenerator } = require("../utlis/slugGenerate");
 const xlsx = require("xlsx");
 const { default: mongoose } = require("mongoose");
+const { notifications } = require("../models/notifyProductModel");
 
 const createProduct = async (req, res) => {
   try {
@@ -971,15 +972,11 @@ const filterProducts = async (req, res) => {
       priceRange,
       stockStatus,
     } = req.body;
-    console.log( productCat,
-      subCat,
-      searchKeyword,
-      priceRange,
-      stockStatus,)
+    console.log(productCat, subCat, searchKeyword, priceRange, stockStatus);
 
     const { page = 1, pageSize = 9 } = req.query; // Default to page 1 and pageSize 9 if not provided
 
-    console.log(req.query)
+    console.log(req.query);
     // Build the query object
     let query = {};
 
@@ -1068,13 +1065,13 @@ const filterProducts = async (req, res) => {
         product.productGalleryImageUrls.length > 0
           ? product?.productGalleryImageUrls[0]
           : null;
-          const salesStatus = product.quantity > 0 ? "Sale" : "Unavailable";
+      const salesStatus = product.quantity > 0 ? "Sale" : "Unavailable";
       return {
         ...product,
         title: product.name, // Assuming title is the same as name
         discountPrice: discountPrice,
         productGalleryImageUrls: firstImageUrl,
-        salesStatus:salesStatus,
+        salesStatus: salesStatus,
       };
     });
 
@@ -1082,6 +1079,84 @@ const filterProducts = async (req, res) => {
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: "Error fetching products", error });
+  }
+};
+
+// adding product in notifications
+const pushProductIntoNotified = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const userId = new ObjectId(req.decoded.id);
+
+    const isExist = await notifications.findOne({ userId: userId });
+    isExist
+      ? await notifications.findByIdAndUpdate(isExist._id, {
+          $push: {
+            productIds: productId,
+          },
+        })
+      : await notifications.create({
+          userId: userId,
+          productIds: [productId],
+        });
+    res.status(201).send({
+      success: true,
+      message: "You will be notified about the product in future",
+    });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    res.status(500).send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+// Get notifications for a user along with product details
+const getInfoOfNotifiedProducts = async (req, res) => {
+  try {
+    const userId = new ObjectId(req.decoded.id);
+    const userNotifications = await notifications.findOne({ userId: userId });
+    const result = [];
+    userNotifications.productIds.forEach(async (pid) => {
+      await Product.findById(pid).then((prod) => {
+        result.push({
+          id: pid,
+          name: prod.name,
+          image: prod.image.imageUrl,
+          price: prod.price,
+          discountPrice: prod.price - (prod.price * prod.discount) / 100,
+          date: prod.createdAt,
+          status: prod.quantity > 0 ? "available" : "unavailable",
+        });
+      });
+    });
+    res.status(200).send({ success: true, data: result });
+  } catch (error) {
+    console.error("Error retrieving notifications:", error);
+    res.status(500).send({ success: false, message: "Something went wrong!" });
+  }
+};
+
+// Delete a notification
+const popProductFromNotifications = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const result = await notifications.findOneAndUpdate(
+      { userId: userId },
+      {
+        $pull: {
+          productIds: productId,
+        },
+      }
+    );
+    result.productIds.length === 0
+      ? await notifications.findByIdAndDelete(result._id)
+      : null;
+    res.status(200).send({
+      success: true,
+      message: "You will not be notified about this product in future",
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    res.status(500).send({ success: false, message: "Something went wrong!" });
   }
 };
 
@@ -1096,4 +1171,7 @@ module.exports = {
   searchByProductName,
   getDeatailedProductCountByCategoryWise,
   filterProducts,
+  pushProductIntoNotified,
+  getInfoOfNotifiedProducts,
+  popProductFromNotifications,
 };
