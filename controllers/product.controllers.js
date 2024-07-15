@@ -1083,82 +1083,104 @@ const filterProducts = async (req, res) => {
 };
 
 // adding product in notifications
-const pushProductIntoNotified = async (req, res) => {
-  try {
-    const productId = req.params.productId;
-    const userId = new ObjectId(req.decoded.id);
 
-    const isExist = await notifications.findOne({ userId: userId });
-    isExist
-      ? await notifications.findByIdAndUpdate(isExist._id, {
-          $push: {
-            productIds: productId,
-          },
-        })
-      : await notifications.create({
-          userId: userId,
-          productIds: [productId],
+const toggleProductInNotify = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    console.log(productId);
+    const userId = new ObjectId(req.decoded.id);
+    let notifyCollection = await notifications.findOne({ userId: userId });
+
+    if (notifyCollection) {
+      if (notifyCollection?.productIds?.includes(productId)) {
+        notifyCollection?.productIds?.length === 1
+          ? await notifications.findByIdAndDelete(notifyCollection._id)
+          : await notifications.findByIdAndUpdate(notifyCollection._id, {
+              $pull: { productIds: productId },
+            });
+        return res.status(200).send({
+          success: true,
+          message: "Product removed from notification!",
         });
-    res.status(201).send({
-      success: true,
-      message: "You will be notified about the product in future",
-    });
+      } else {
+        await notifications.findByIdAndUpdate(notifyCollection._id, {
+          $push: { productIds: productId },
+        });
+        return res
+          .status(200)
+          .send({ success: true, message: "Product added to notification!" });
+      }
+    } else {
+      const result = await notifications.create({
+        userId: userId,
+        productIds: [productId],
+      });
+      return res.status(200).send({
+        success: true,
+        data: result,
+        message: "Product added to notification!",
+      });
+    }
   } catch (error) {
-    console.error("Error creating notification:", error);
-    res.status(500).send({ success: false, message: "Something went wrong!" });
+    console.error(error);
+    res.status(500).send({ success: false, message: "Server error", error });
   }
 };
 
 // Get notifications for a user along with product details
-const getInfoOfNotifiedProducts = async (req, res) => {
+const getNotifyProducts = async (req, res) => {
   try {
     const userId = new ObjectId(req.decoded.id);
-    const userNotifications = await notifications.findOne({ userId: userId });
-    const result = [];
-    userNotifications.productIds.forEach(async (pid) => {
-      await Product.findById(pid).then((prod) => {
-        result.push({
-          id: pid,
-          name: prod.name,
-          image: prod.image.imageUrl,
-          price: prod.price,
-          discountPrice: prod.price - (prod.price * prod.discount) / 100,
-          date: prod.createdAt,
-          status: prod.quantity > 0 ? "available" : "unavailable",
-        });
-      });
-    });
-    res.status(200).send({ success: true, data: result });
-  } catch (error) {
-    console.error("Error retrieving notifications:", error);
-    res.status(500).send({ success: false, message: "Something went wrong!" });
-  }
-};
+    const userNotify = await notifications.findOne({ userId: userId });
+    if (!userNotify) {
+      return res.send({ success: true, data: [] });
+    }
 
-// Delete a notification
-const popProductFromNotifications = async (req, res) => {
-  try {
-    const productId = req.params.productId;
-    const result = await notifications.findOneAndUpdate(
-      { userId: userId },
-      {
-        $pull: {
-          productIds: productId,
-        },
-      }
+    const notifyProducts = await Promise.all(
+      userNotify.productIds.map(async (productId) => {
+        const product = await Product.findById(productId).select("name");
+        console.log(product);
+        if (!product) return null;
+
+        return product;
+      })
     );
-    result.productIds.length === 0
-      ? await notifications.findByIdAndDelete(result._id)
-      : null;
-    res.status(200).send({
-      success: true,
-      message: "You will not be notified about this product in future",
-    });
+
+    console.log(notifyProducts);
+    const filteredProducts = notifyProducts.filter(
+      (product) => product !== null
+    );
+
+    res.status(200).send({ success: true, data: filteredProducts });
   } catch (error) {
-    console.error("Error deleting notification:", error);
-    res.status(500).send({ success: false, message: "Something went wrong!" });
+    console.error(error);
+    res.status(500).send({ success: false, message: "Server error" });
   }
 };
+// Delete a notification
+// const popProductFromNotifications = async (req, res) => {
+//   try {
+//     const productId = req.params.productId;
+//     const result = await notifications.findOneAndUpdate(
+//       { userId: userId },
+//       {
+//         $pull: {
+//           productIds: productId,
+//         },
+//       }
+//     );
+//     result.productIds.length === 0
+//       ? await notifications.findByIdAndDelete(result._id)
+//       : null;
+//     res.status(200).send({
+//       success: true,
+//       message: "You will not be notified about this product in future",
+//     });
+//   } catch (error) {
+//     console.error("Error deleting notification:", error);
+//     res.status(500).send({ success: false, message: "Something went wrong!" });
+//   }
+// };
 
 module.exports = {
   createProduct,
@@ -1171,7 +1193,6 @@ module.exports = {
   searchByProductName,
   getDeatailedProductCountByCategoryWise,
   filterProducts,
-  pushProductIntoNotified,
-  getInfoOfNotifiedProducts,
-  popProductFromNotifications,
+  toggleProductInNotify,
+  getNotifyProducts,
 };

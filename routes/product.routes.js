@@ -12,7 +12,10 @@ const {
   pushProductIntoNotified,
   getInfoOfNotifiedProducts,
   popProductFromNotifications,
+  toggleProductInNotify,
+  getNotifyProducts,
 } = require("../controllers/product.controllers.js");
+const { verifyJwt } = require("../middlewares/verifyJWT.js");
 
 const productRoute = require("express").Router();
 const upload = require("multer")();
@@ -48,9 +51,9 @@ productRoute.get(
 productRoute.put("/filter", filterProducts);
 
 // product notification routes
-productRoute.post("/notification/:productId", pushProductIntoNotified);
-productRoute.get("/notification", getInfoOfNotifiedProducts);
-productRoute.delete("/notification/:productId", popProductFromNotifications);
+productRoute.put("/notification/:productId", verifyJwt, toggleProductInNotify);
+productRoute.get("/notification", verifyJwt, getNotifyProducts);
+// productRoute.delete("/notification/:productId", popProductFromNotifications);
 
 //   productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
 
