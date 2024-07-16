@@ -8,7 +8,7 @@ const { verifyJwt } = require("../middlewares/verifyJWT");
 const cartRouter = require("express").Router();
 
 cartRouter.post("/:productId", verifyJwt, toggleItem); // done
-cartRouter.get("/", getCartItems); // done
+cartRouter.get("/", verifyJwt, getCartItems); // done
 cartRouter.put("/:productId", verifyJwt, updateItem); // done
 
 module.exports = { cartRouter };
