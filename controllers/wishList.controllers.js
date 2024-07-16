@@ -51,15 +51,22 @@ const getWishListProducts = async (req, res) => {
 
     const wishlistProducts = await Promise.all(
       userWishlist.products.map(async (productId) => {
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId).lean();
         if (!product) return null;
 
-        const category = await productParentCategory.findById(
-          product.parent_category_id
-        );
+        const category = await productParentCategory
+          .findById(product.parent_category_id)
+          .lean();
         const categoryName = category ? category.name : "Unknown Category";
 
-        return { ...product.toObject(), categoryName };
+        return {
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          discount: product.discount,
+          image: product.image?.imageUrl || null,
+          categoryName,
+        };
       })
     );
 
