@@ -62,12 +62,32 @@ const updateItem = async (req, res) => {
     const { type } = req.body;
     const userId = new ObjectId(req.decoded.id);
     const product = await Product.findById(productId);
-    const cart = await carts.findOne({ userId: userId });
 
-    if (!cart) {
+    if (!product) {
       return res
         .status(404)
-        .send({ success: false, message: "Cart not found" });
+        .send({ success: false, message: "Product not found" });
+    }
+
+    let cart = await carts.findOne({ userId: userId });
+
+    if (!cart) {
+      if (type === "+") {
+        // Create a new cart if it doesn't exist and type is '+'
+        cart = new carts({
+          userId: userId,
+          products: [{ productId: productId, quantity: 1 }],
+          totalAmount: product.price,
+        });
+        await cart.save();
+        return res
+          .status(200)
+          .send({ success: true, message: "Product added to new cart" });
+      } else {
+        return res
+          .status(404)
+          .send({ success: false, message: "Cart not found" });
+      }
     }
 
     const productIndex = cart.products.findIndex(
@@ -75,24 +95,44 @@ const updateItem = async (req, res) => {
     );
 
     if (productIndex === -1) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Product not found in cart" });
-    }
-
-    if (type === "+") {
-      cart.products[productIndex].quantity += 1;
-      cart.totalAmount += product.price;
-    } else if (type === "-") {
-      cart.products[productIndex].quantity -= 1;
-      cart.totalAmount -= product.price;
-      if (cart.products[productIndex].quantity <= 0) {
-        cart.products.splice(productIndex, 1);
+      if (type === "+") {
+        // Add the product to the cart if it doesn't exist and type is '+'
+        cart.products.push({ productId: productId, quantity: 1 });
+        cart.totalAmount += product.price;
+      } else {
+        return res
+          .status(404)
+          .send({ success: false, message: "Product not found in cart" });
       }
     } else {
-      return res
-        .status(400)
-        .send({ success: false, message: "Invalid request type" });
+      if (type === "+") {
+        cart.products[productIndex].quantity += 1;
+        cart.totalAmount += product.price;
+      } else if (type === "-") {
+        if (cart.products[productIndex].quantity === 1) {
+          // Remove the product from the cart
+          cart.products.splice(productIndex, 1);
+          cart.totalAmount -= product.price;
+
+          // If this was the last product, delete the entire cart
+          if (cart.products.length === 0) {
+            await carts.findOneAndDelete({ userId: userId });
+            return res
+              .status(200)
+              .send({
+                success: true,
+                message: "Cart deleted as it became empty",
+              });
+          }
+        } else {
+          cart.products[productIndex].quantity -= 1;
+          cart.totalAmount -= product.price;
+        }
+      } else {
+        return res
+          .status(400)
+          .send({ success: false, message: "Invalid request type" });
+      }
     }
 
     await cart.save();
@@ -134,6 +174,7 @@ const getCartItems = async (req, res) => {
       return {
         _id: product._id,
         name: product.name,
+        slug: product.slug,
         price: product.price,
         discount: product.discount,
         img: product.image ? product.image.imageUrl : null,

@@ -35,7 +35,7 @@ productRoute.delete("/admin/product/:productId", deleteProductById);
 
 // user viewing product
 productRoute.get("/user/products", showProducts);
-productRoute.get("/user/product/:productId", viewProduct);
+productRoute.get("/user/:slug", viewProduct);
 
 // filter search product
 productRoute.get("/search-products", searchByProductName);

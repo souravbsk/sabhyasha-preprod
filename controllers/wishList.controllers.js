@@ -61,6 +61,7 @@ const getWishListProducts = async (req, res) => {
 
         return {
           _id: product._id,
+          slug: product.slug,
           name: product.name,
           price: product.price,
           discount: product.discount,
