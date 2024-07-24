@@ -130,6 +130,8 @@ const deleteParentCategoryById = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   createParentCategory,
   getAllParentCategories,

@@ -5,6 +5,7 @@ const {
   deleteProductCategoryById,
   getAllProductCategoryById,
   getAllCategoryById,
+  getAllCategoryForShop,
 } = require("../controllers/productCategory.controllers.js");
 
 const productCategoryRoute = require("express").Router();
@@ -18,7 +19,11 @@ productCategoryRoute.put(
   updateProductCategoryById
 ); // get blogs by category
 productCategoryRoute.delete("/:categoryId", deleteProductCategoryById);
-productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); // remove blog
-productCategoryRoute.get("/parentCategory/:parentcategoryId", getAllCategoryById); // remove blog
+productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); 
+productCategoryRoute.get("/parentCategory/:parentcategoryId", getAllCategoryById); 
+productCategoryRoute.get("/shop/productcategry", getAllCategoryForShop); 
+
+
+
 
 module.exports = { productCategoryRoute };

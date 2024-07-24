@@ -256,7 +256,9 @@ const getAllCategoryById = async (req, res) => {
       .find({
         parentCategoryId: filterCategoryId,
       })
-      .select("-image -slug -updatedAt -createdAt -selectedFields -isCustomizable") // Exclude 'image' and 'slug' fields
+      .select(
+        "-image -slug -updatedAt -createdAt -selectedFields -isCustomizable"
+      ) // Exclude 'image' and 'slug' fields
       .lean();
 
     if (!productCategories || productCategories.length === 0) {
@@ -276,6 +278,25 @@ const getAllCategoryById = async (req, res) => {
   }
 };
 
+const getAllCategoryForShop = async (req, res) => {
+  try {
+    let { productCategoryLength = 15 } = req.query;
+    const categoryCollection = await productCategory
+      .find({})
+      .select("name slug image")
+      .limit(productCategoryLength)
+      .lean();
+
+    console.log(categoryCollection);
+    res.status(200).json(categoryCollection);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", errorMessage: error });
+  }
+};
+
 module.exports = {
   createProductCategory,
   getAllProductCategories,
@@ -283,4 +304,5 @@ module.exports = {
   deleteProductCategoryById,
   getAllProductCategoryById,
   getAllCategoryById,
+  getAllCategoryForShop,
 };
