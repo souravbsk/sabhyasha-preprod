@@ -54,6 +54,7 @@ const { profileRouter } = require("./routes/profile.routes.js");
 const { cartRouter } = require("./routes/cart.routes.js");
 const { wishListRouter } = require("./routes/wishlist.routes.js");
 const { userRouter } = require("./routes/user.routes.js");
+const { checkoutRoute } = require("./routes/cheackout.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -95,6 +96,9 @@ app.use("/api/wishlist", wishListRouter);
 
 // user api
 app.use("/api/user", userRouter);
+
+// checkout api
+app.use("/api/checkout", checkoutRoute);
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);

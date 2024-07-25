@@ -1,6 +1,7 @@
 const { customizedFields } = require("../models/customizationModel");
 const { productParentCategory } = require("../models/parentCategoryModel");
 const { productCategory } = require("../models/productCategoryModel");
+const { Product } = require("../models/productModel");
 const { uploadToS3 } = require("../utlis/awsTools");
 const collections = require("../utlis/collections");
 const { slugGenerator } = require("../utlis/slugGenerate");
@@ -281,21 +282,71 @@ const getAllCategoryById = async (req, res) => {
 const getAllCategoryForShop = async (req, res) => {
   try {
     let { productCategoryLength = 15 } = req.query;
-    const categoryCollection = await productCategory
-      .find({})
-      .select("name slug image")
-      .limit(productCategoryLength)
-      .lean();
+
+    // Aggregate product counts for each category
+    const productCounts = await Product.aggregate([
+      {
+        $match: { category_id: { $ne: null } } // Filter out documents with null category_id
+      },
+      {
+        $group: {
+          _id: "$category_id", // Use category_id instead of productCategoryId
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Convert the product counts array into an object for easier access
+    const productCountMap = productCounts.reduce((acc, curr) => {
+      if (curr._id) {
+        acc[curr._id.toString()] = curr.count; // Convert ObjectId to string for key
+      }
+      return acc;
+    }, {});
+
+    // Fetch the categories with the product counts
+    const categoryCollection = await productCategory.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "category_id", // Use category_id instead of productCategoryId
+          as: "products",
+        },
+      },
+      {
+        $addFields: {
+          productCount: {
+            $size: "$products",
+          },
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          slug: 1,
+          image: 1,
+          productCount: 1,
+        },
+      },
+      {
+        $sort: { productCount: -1 }, 
+      },
+      {
+        $limit: parseInt(productCategoryLength, 10), 
+      },
+    ]);
 
     console.log(categoryCollection);
     res.status(200).json(categoryCollection);
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ error: "Internal Server Error", errorMessage: error });
+    res.status(500).json({ error: "Internal Server Error", errorMessage: error });
   }
 };
+
+
+
 
 module.exports = {
   createProductCategory,

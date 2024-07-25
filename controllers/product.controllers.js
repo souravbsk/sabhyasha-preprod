@@ -902,7 +902,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
 
     // Step 5: Build the result structure
     const result = parentCategories.reduce((acc, parentCat) => {
-      acc[parentCat.slug] = {
+      const parentCategoryData = {
         id: parentCat._id,
         slug: parentCat.slug,
         name: parentCat.name, // Include parent category name
@@ -915,7 +915,7 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
       );
 
       relevantCategories.forEach((cat) => {
-        acc[parentCat.slug].data[cat.slug] = {
+        const categoryData = {
           id: cat._id,
           slug: cat.slug,
           name: cat.name, // Include category name
@@ -930,25 +930,34 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
         relevantSubcategories.forEach((subcat) => {
           const countData = subcategoryCounts.find(
             (sc) =>
-              sc._id.parent_category_id.toString() ===
-                parentCat._id.toString() &&
+              sc._id.parent_category_id.toString() === parentCat._id.toString() &&
               sc._id.category_id.toString() === cat._id.toString() &&
               sc._id.subcategory_id.toString() === subcat._id.toString()
           );
 
           const count = countData ? countData.count : 0;
 
-          acc[parentCat.slug].data[cat.slug].data[subcat.slug] = {
-            id: subcat._id,
-            slug: subcat.slug,
-            name: subcat.name, // Include subcategory name
-            count: count,
-          };
+          if (count > 0) {
+            categoryData.data[subcat.slug] = {
+              id: subcat._id,
+              slug: subcat.slug,
+              name: subcat.name, // Include subcategory name
+              count: count,
+            };
 
-          acc[parentCat.slug].data[cat.slug].count += count;
-          acc[parentCat.slug].count += count;
+            categoryData.count += count;
+            parentCategoryData.count += count;
+          }
         });
+
+        if (categoryData.count > 0) {
+          parentCategoryData.data[cat.slug] = categoryData;
+        }
       });
+
+      if (parentCategoryData.count > 0) {
+        acc[parentCat.slug] = parentCategoryData;
+      }
 
       return acc;
     }, {});
