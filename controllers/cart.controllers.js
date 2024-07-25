@@ -61,81 +61,84 @@ const updateItem = async (req, res) => {
     const { productId } = req.params;
     const { type } = req.body;
     const userId = new ObjectId(req.decoded.id);
-    const product = await Product.findById(productId);
 
+    // First, check if the product exists
+    const product = await Product.findById(productId);
     if (!product) {
       return res
         .status(404)
         .send({ success: false, message: "Product not found" });
     }
 
-    let cart = await carts.findOne({ userId: userId });
+    if (type === "+") {
+      // Increment quantity or add new product
+      const result = await Cart.updateOne(
+        { userId: userId },
+        {
+          $inc: { totalAmount: product.price },
+          $push: {
+            $cond: [
+              { $not: [{ $in: [productId, "$products.productId"] }] },
+              { products: { productId: productId, quantity: 1 } },
+              [],
+            ],
+          },
+          $inc: {
+            "products.$[elem].quantity": 1,
+          },
+        },
+        {
+          arrayFilters: [{ "elem.productId": productId }],
+          upsert: true,
+        }
+      );
 
-    if (!cart) {
-      if (type === "+") {
-        // Create a new cart if it doesn't exist and type is '+'
-        cart = new carts({
-          userId: userId,
-          products: [{ productId: productId, quantity: 1 }],
-          totalAmount: product.price,
-        });
-        await cart.save();
+      if (result.upsertedCount > 0) {
         return res
           .status(200)
           .send({ success: true, message: "Product added to new cart" });
-      } else {
-        return res
-          .status(404)
-          .send({ success: false, message: "Cart not found" });
       }
-    }
+    } else if (type === "-") {
+      // Decrement quantity or remove product
+      const result = await Cart.findOneAndUpdate(
+        { userId: userId, "products.productId": productId },
+        {
+          $inc: { totalAmount: -product.price },
+          $set: {
+            "products.$[elem].quantity": {
+              $cond: [
+                { $gt: ["$products.$[elem].quantity", 1] },
+                { $subtract: ["$products.$[elem].quantity", 1] },
+                "$$REMOVE",
+              ],
+            },
+          },
+        },
+        {
+          arrayFilters: [{ "elem.productId": productId }],
+          new: true,
+        }
+      );
 
-    const productIndex = cart.products.findIndex(
-      (p) => p.productId.toString() === productId
-    );
-
-    if (productIndex === -1) {
-      if (type === "+") {
-        // Add the product to the cart if it doesn't exist and type is '+'
-        cart.products.push({ productId: productId, quantity: 1 });
-        cart.totalAmount += product.price;
-      } else {
+      if (!result) {
         return res
           .status(404)
           .send({ success: false, message: "Product not found in cart" });
       }
-    } else {
-      if (type === "+") {
-        cart.products[productIndex].quantity += 1;
-        cart.totalAmount += product.price;
-      } else if (type === "-") {
-        if (cart.products[productIndex].quantity === 1) {
-          // Remove the product from the cart
-          cart.products.splice(productIndex, 1);
-          cart.totalAmount -= product.price;
 
-          // If this was the last product, delete the entire cart
-          if (cart.products.length === 0) {
-            await carts.findOneAndDelete({ userId: userId });
-            return res
-              .status(200)
-              .send({
-                success: true,
-                message: "Cart deleted as it became empty",
-              });
-          }
-        } else {
-          cart.products[productIndex].quantity -= 1;
-          cart.totalAmount -= product.price;
-        }
-      } else {
+      // Check if the cart is empty and delete if necessary
+      if (result.products.length === 0) {
+        await Cart.deleteOne({ userId: userId });
         return res
-          .status(400)
-          .send({ success: false, message: "Invalid request type" });
+          .status(200)
+          .send({ success: true, message: "Cart deleted as it became empty" });
       }
+    } else {
+      return res
+        .status(400)
+        .send({ success: false, message: "Invalid request type" });
     }
 
-    await cart.save();
     res.status(200).send({ success: true, message: "Cart updated" });
   } catch (error) {
     console.log(error);
@@ -157,7 +160,6 @@ const getCartItems = async (req, res) => {
     }
 
     const userCart = cart.products.map((item) => item.productId);
-
     const cartProducts = await Product.find({ _id: { $in: userCart } }).lean();
 
     const parentCategories = await productParentCategory.find({}).lean();
@@ -176,7 +178,7 @@ const getCartItems = async (req, res) => {
         name: product.name,
         slug: product.slug,
         price: product.price,
-        discount: product.discount,
+        discountPrice: (product.discount / 100) * product.price,
         img: product.image ? product.image.imageUrl : null,
         quantity: productInCart.quantity,
         parentCategoryName: parentCategoryMap[product.parent_category_id] || "",
@@ -193,8 +195,66 @@ const getCartItems = async (req, res) => {
   }
 };
 
+// Remove Product By ID
+const removeProductById = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = new ObjectId(req.decoded.id);
+    const cart = await carts.findOne({ userId: userId });
+
+    if (!cart) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Cart not found" });
+    }
+
+    const productIndex = cart.products.findIndex(
+      (p) => p.productId.toString() === productId
+    );
+
+    if (productIndex === -1) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Product not found in cart" });
+    }
+
+    cart.totalAmount -=
+      cart.products[productIndex].quantity * cart.products[productIndex].price;
+    cart.products.splice(productIndex, 1);
+
+    if (cart.products.length === 0) {
+      await carts.findOneAndDelete({ userId: userId });
+      return res
+        .status(200)
+        .send({ success: true, message: "Cart deleted as it became empty" });
+    }
+
+    await cart.save();
+    res
+      .status(200)
+      .send({ success: true, message: "Product removed from cart" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
+// Clear Cart
+const clearCart = async (req, res) => {
+  try {
+    const userId = new ObjectId(req.decoded.id);
+    await carts.deleteOne({ userId: userId });
+    res.status(200).send({ success: true, message: "Cart cleared!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   toggleItem,
   updateItem,
   getCartItems,
+  removeProductById,
+  clearCart,
 };
