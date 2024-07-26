@@ -73,16 +73,17 @@ const createProduct = async (req, res) => {
 
     // Save the new product to the database
     const insertedProduct = await newProductData.save();
+    console.log(insertedProduct)
 
-    if (!insertedProduct) {
-      return res.status(404).json({ error: "Product not created" });
-    }
+    // if (!insertedProduct) {
+    //   return res.status(404).json({ error: "Product not created" });
+    // }
 
-    return res.status(201).json({
-      success: true,
-      message: "Product created successfully",
-      data: insertedProduct,
-    });
+    // return res.status(201).json({
+    //   success: true,
+    //   message: "Product created successfully",
+    //   data: insertedProduct,
+    // });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
