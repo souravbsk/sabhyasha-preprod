@@ -19,6 +19,7 @@ const { notifications } = require("../models/notifyProductModel");
 const createProduct = async (req, res) => {
   try {
     const { newProduct } = req.body;
+    console.log(newProduct);
     const newProductParse = JSON.parse(newProduct);
 
     const createdAt = new Date();
