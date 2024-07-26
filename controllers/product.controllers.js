@@ -15,13 +15,86 @@ const { slugGenerator } = require("../utlis/slugGenerate");
 const xlsx = require("xlsx");
 const { default: mongoose } = require("mongoose");
 const { notifications } = require("../models/notifyProductModel");
+const { processImage } = require("../utlis/imageCompressor");
+
+// const createProduct = async (req, res) => {
+//   try {
+//     const { newProduct } = req.body;
+//     console.log(newProduct);
+//     const newProductParse = JSON.parse(newProduct);
+
+//     const createdAt = new Date();
+
+//     // Filter to divide images
+//     const featureImageFiles = req.files.filter(
+//       (file) => file?.fieldname === "productFeatureImage"
+//     );
+//     const productGalleryImage = req.files.filter(
+//       (file) => file?.fieldname !== "productFeatureImage"
+//     );
+
+//     // Upload feature image to S3 and get URL
+//     req.files = featureImageFiles;
+//     await uploadToS3("Product")(req, res);
+//     const featureImageUrl = req.fileUrls[0];
+
+//     const featureImage = {
+//       imageUrl: featureImageUrl,
+//     };
+
+//     // Upload product gallery images to S3 and get URLs
+//     req.files = productGalleryImage;
+//     await uploadToS3("Product")(req, res);
+//     const productGalleryImageUrls = req.fileUrls;
+//     const existingSlugs = await Product.find({}).distinct("slug");
+//     // Generate slug
+//     const generateSlugUrl = await slugGenerator(
+//       newProductParse.name,
+//       existingSlugs // Use Mongoose model for slug generation
+//     );
+
+//     // Convert Excel boolean values
+//     newProductParse.returnable = excelToBoolean(newProductParse.returnable);
+//     newProductParse.cancellable = excelToBoolean(newProductParse.cancellable);
+//     newProductParse.available_for_cod = excelToBoolean(
+//       newProductParse.available_for_cod
+//     );
+//     newProductParse.seller_pickup_return = excelToBoolean(
+//       newProductParse.seller_pickup_return
+//     );
+
+//     // Create new product document
+//     const newProductData = new Product({
+//       ...newProductParse,
+//       image: featureImage,
+//       productGalleryImageUrls,
+//       view_count: null,
+//       createdAt,
+//       slug: generateSlugUrl,
+//     });
+
+//     // Save the new product to the database
+//     const insertedProduct = await newProductData.save();
+
+//     if (!insertedProduct) {
+//       return res.status(404).json({ error: "Product not created" });
+//     }
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Product created successfully",
+//       data: insertedProduct,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 
 const createProduct = async (req, res) => {
   try {
     const { newProduct } = req.body;
-    console.log(newProduct);
     const newProductParse = JSON.parse(newProduct);
-
     const createdAt = new Date();
 
     // Filter to divide images
@@ -32,24 +105,40 @@ const createProduct = async (req, res) => {
       (file) => file?.fieldname !== "productFeatureImage"
     );
 
-    // Upload feature image to S3 and get URL
-    req.files = featureImageFiles;
-    await uploadToS3("Product")(req, res);
-    const featureImageUrl = req.fileUrls[0];
+    // Process and upload feature image to S3
+    if (featureImageFiles.length > 0) {
+      const featureImageBuffer = await processImage(
+        featureImageFiles[0].buffer
+      );
+
+      req.files = [{ ...featureImageFiles[0], buffer: featureImageBuffer }];
+      await uploadToS3("Product")(req, res);
+      var featureImageUrl = req.fileUrls[0];
+    }
 
     const featureImage = {
       imageUrl: featureImageUrl,
     };
 
-    // Upload product gallery images to S3 and get URLs
-    req.files = productGalleryImage;
+    // Process and upload product gallery images to S3
+    const productGalleryImageBuffers = await Promise.all(
+      productGalleryImage.map((file) => processImage(file.buffer))
+    );
+
+    req.files = productGalleryImage.map((file, index) => ({
+      ...file,
+      buffer: productGalleryImageBuffers[index],
+    }));
+
     await uploadToS3("Product")(req, res);
     const productGalleryImageUrls = req.fileUrls;
+
     const existingSlugs = await Product.find({}).distinct("slug");
+
     // Generate slug
     const generateSlugUrl = await slugGenerator(
       newProductParse.name,
-      existingSlugs // Use Mongoose model for slug generation
+      existingSlugs
     );
 
     // Convert Excel boolean values
