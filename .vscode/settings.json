@@ -3,6 +3,7 @@
         "blockstatus",
         "forgotpassword",
         "parentcategory",
-        "productcategry"
+        "productcategry",
+        "shippingaddress"
     ]
 }

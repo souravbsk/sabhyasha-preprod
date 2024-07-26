@@ -345,7 +345,6 @@ const getAllCategoryForShop = async (req, res) => {
   }
 };
 
-
 module.exports = {
   createProductCategory,
   getAllProductCategories,

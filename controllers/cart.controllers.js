@@ -62,18 +62,16 @@ const updateItem = async (req, res) => {
     const { type } = req.body;
     const userId = new ObjectId(req.decoded.id);
     const product = await Product.findById(productId);
-
+    console.log(productId);
+    console.log(type);
     if (!product) {
       return res
         .status(404)
         .send({ success: false, message: "Product not found" });
     }
-
     let cart = await carts.findOne({ userId: userId });
-
     if (!cart) {
       if (type === "+") {
-        // Create a new cart if it doesn't exist and type is '+'
         cart = new carts({
           userId: userId,
           products: [{ productId: productId, quantity: 1 }],
@@ -89,14 +87,11 @@ const updateItem = async (req, res) => {
           .send({ success: false, message: "Cart not found" });
       }
     }
-
     const productIndex = cart.products.findIndex(
       (p) => p.productId.toString() === productId
     );
-
     if (productIndex === -1) {
       if (type === "+") {
-        // Add the product to the cart if it doesn't exist and type is '+'
         cart.products.push({ productId: productId, quantity: 1 });
         cart.totalAmount += product.price;
       } else {
@@ -110,19 +105,14 @@ const updateItem = async (req, res) => {
         cart.totalAmount += product.price;
       } else if (type === "-") {
         if (cart.products[productIndex].quantity === 1) {
-          // Remove the product from the cart
           cart.products.splice(productIndex, 1);
           cart.totalAmount -= product.price;
-
-          // If this was the last product, delete the entire cart
           if (cart.products.length === 0) {
             await carts.findOneAndDelete({ userId: userId });
-            return res
-              .status(200)
-              .send({
-                success: true,
-                message: "Cart deleted as it became empty",
-              });
+            return res.status(200).send({
+              success: true,
+              message: "Cart deleted as it became empty",
+            });
           }
         } else {
           cart.products[productIndex].quantity -= 1;
@@ -134,7 +124,6 @@ const updateItem = async (req, res) => {
           .send({ success: false, message: "Invalid request type" });
       }
     }
-
     await cart.save();
     res.status(200).send({ success: true, message: "Cart updated" });
   } catch (error) {
@@ -157,7 +146,6 @@ const getCartItems = async (req, res) => {
     }
 
     const userCart = cart.products.map((item) => item.productId);
-
     const cartProducts = await Product.find({ _id: { $in: userCart } }).lean();
 
     const parentCategories = await productParentCategory.find({}).lean();
@@ -176,7 +164,7 @@ const getCartItems = async (req, res) => {
         name: product.name,
         slug: product.slug,
         price: product.price,
-        discount: product.discount,
+        priceWithDiscount: product.price - (product.discount / 100) * product.price,
         img: product.image ? product.image.imageUrl : null,
         quantity: productInCart.quantity,
         parentCategoryName: parentCategoryMap[product.parent_category_id] || "",
@@ -193,8 +181,66 @@ const getCartItems = async (req, res) => {
   }
 };
 
+// Remove Product By ID
+const removeProductById = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = new ObjectId(req.decoded.id);
+    const cart = await carts.findOne({ userId: userId });
+
+    if (!cart) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Cart not found" });
+    }
+
+    const productIndex = cart.products.findIndex(
+      (p) => p.productId.toString() === productId
+    );
+
+    if (productIndex === -1) {
+      return res
+        .status(404)
+        .send({ success: false, message: "Product not found in cart" });
+    }
+
+    cart.totalAmount -=
+      cart.products[productIndex].quantity * cart.products[productIndex].price;
+    cart.products.splice(productIndex, 1);
+
+    if (cart.products.length === 0) {
+      await carts.findOneAndDelete({ userId: userId });
+      return res
+        .status(200)
+        .send({ success: true, message: "Cart deleted as it became empty" });
+    }
+
+    await cart.save();
+    res
+      .status(200)
+      .send({ success: true, message: "Product removed from cart" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
+// Clear Cart
+const clearCart = async (req, res) => {
+  try {
+    const userId = new ObjectId(req.decoded.id);
+    await carts.deleteOne({ userId: userId });
+    res.status(200).send({ success: true, message: "Cart cleared!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   toggleItem,
   updateItem,
   getCartItems,
+  removeProductById,
+  clearCart,
 };
