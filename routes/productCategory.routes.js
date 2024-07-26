@@ -21,7 +21,7 @@ productCategoryRoute.put(
 productCategoryRoute.delete("/:categoryId", deleteProductCategoryById);
 productCategoryRoute.get("/:parentcategoryId", getAllProductCategoryById); 
 productCategoryRoute.get("/parentCategory/:parentcategoryId", getAllCategoryById); 
-productCategoryRoute.get("/shop/productcategry", getAllCategoryForShop); 
+productCategoryRoute.get("/user/productcategry", getAllCategoryForShop); 
 
 
 
