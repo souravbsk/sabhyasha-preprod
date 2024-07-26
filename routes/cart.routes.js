@@ -11,7 +11,7 @@ const cartRouter = require("express").Router();
 
 cartRouter.put("/:productId", verifyJwt, toggleItem); // done
 cartRouter.get("/", verifyJwt, getCartItems); // done
-cartRouter.put("/productQuantity/:productId", verifyJwt, updateItem); // done
+cartRouter.put("/update/:productId", verifyJwt, updateItem); // done
 cartRouter.delete("/:productId", verifyJwt, removeProductById); // done
 cartRouter.delete("/", verifyJwt, clearCart); // done
 
