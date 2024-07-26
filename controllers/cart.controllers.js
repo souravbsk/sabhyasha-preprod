@@ -57,81 +57,85 @@ const toggleItem = async (req, res) => {
 
 // Update Quantity
 const updateItem = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const { type } = req.body;
-    const userId = new ObjectId(req.decoded.id);
-    const product = await Product.findById(productId);
-    console.log(productId);
-    console.log(type);
-    if (!product) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Product not found" });
-    }
-    let cart = await carts.findOne({ userId: userId });
-    if (!cart) {
-      if (type === "+") {
-        cart = new carts({
-          userId: userId,
-          products: [{ productId: productId, quantity: 1 }],
-          totalAmount: product.price,
-        });
-        await cart.save();
-        return res
-          .status(200)
-          .send({ success: true, message: "Product added to new cart" });
-      } else {
-        return res
-          .status(404)
-          .send({ success: false, message: "Cart not found" });
-      }
-    }
-    const productIndex = cart.products.findIndex(
-      (p) => p.productId.toString() === productId
-    );
-    if (productIndex === -1) {
-      if (type === "+") {
-        cart.products.push({ productId: productId, quantity: 1 });
-        cart.totalAmount += product.price;
-      } else {
-        return res
-          .status(404)
-          .send({ success: false, message: "Product not found in cart" });
-      }
-    } else {
-      if (type === "+") {
-        cart.products[productIndex].quantity += 1;
-        cart.totalAmount += product.price;
-      } else if (type === "-") {
-        if (cart.products[productIndex].quantity === 1) {
-          cart.products.splice(productIndex, 1);
-          cart.totalAmount -= product.price;
-          if (cart.products.length === 0) {
-            await carts.findOneAndDelete({ userId: userId });
-            return res
-              .status(200)
-              .send({
-                success: true,
-                message: "Cart deleted as it became empty",
-              });
-          }
-        } else {
-          cart.products[productIndex].quantity -= 1;
-          cart.totalAmount -= product.price;
-        }
-      } else {
-        return res
-          .status(400)
-          .send({ success: false, message: "Invalid request type" });
-      }
-    }
-    await cart.save();
-    res.status(200).send({ success: true, message: "Cart updated" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({ success: false, message: "Server error" });
-  }
+  console.log("fdddddddddddddddddddddddddddddddddddsa")
+  // try {
+  //   const { productId } = req.params;
+
+  //   console.log(productId);
+  //   console.log(type);
+
+  //   const { type } = req.body;
+  //   const userId = new ObjectId(req.decoded.id);
+  //   const product = await Product.findById(productId);
+ 
+  //   if (!product) {
+  //     return res
+  //       .status(404)
+  //       .send({ success: false, message: "Product not found" });
+  //   }
+  //   let cart = await carts.findOne({ userId: userId });
+  //   if (!cart) {
+  //     if (type === "+") {
+  //       cart = new carts({
+  //         userId: userId,
+  //         products: [{ productId: productId, quantity: 1 }],
+  //         totalAmount: product.price,
+  //       });
+  //       await cart.save();
+  //       return res
+  //         .status(200)
+  //         .send({ success: true, message: "Product added to new cart" });
+  //     } else {
+  //       return res
+  //         .status(404)
+  //         .send({ success: false, message: "Cart not found" });
+  //     }
+  //   }
+  //   const productIndex = cart.products.findIndex(
+  //     (p) => p.productId.toString() === productId
+  //   );
+  //   if (productIndex === -1) {
+  //     if (type === "+") {
+  //       cart.products.push({ productId: productId, quantity: 1 });
+  //       cart.totalAmount += product.price;
+  //     } else {
+  //       return res
+  //         .status(404)
+  //         .send({ success: false, message: "Product not found in cart" });
+  //     }
+  //   } else {
+  //     if (type === "+") {
+  //       cart.products[productIndex].quantity += 1;
+  //       cart.totalAmount += product.price;
+  //     } else if (type === "-") {
+  //       if (cart.products[productIndex].quantity === 1) {
+  //         cart.products.splice(productIndex, 1);
+  //         cart.totalAmount -= product.price;
+  //         if (cart.products.length === 0) {
+  //           await carts.findOneAndDelete({ userId: userId });
+  //           return res
+  //             .status(200)
+  //             .send({
+  //               success: true,
+  //               message: "Cart deleted as it became empty",
+  //             });
+  //         }
+  //       } else {
+  //         cart.products[productIndex].quantity -= 1;
+  //         cart.totalAmount -= product.price;
+  //       }
+  //     } else {
+  //       return res
+  //         .status(400)
+  //         .send({ success: false, message: "Invalid request type" });
+  //     }
+  //   }
+  //   await cart.save();
+  //   res.status(200).send({ success: true, message: "Cart updated" });
+  // } catch (error) {
+  //   console.log(error);
+  //   res.status(500).send({ success: false, message: "Server error" });
+  // }
 };
 
 // Get Cart Items
