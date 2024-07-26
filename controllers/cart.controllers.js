@@ -109,12 +109,10 @@ const updateItem = async (req, res) => {
           cart.totalAmount -= product.price;
           if (cart.products.length === 0) {
             await carts.findOneAndDelete({ userId: userId });
-            return res
-              .status(200)
-              .send({
-                success: true,
-                message: "Cart deleted as it became empty",
-              });
+            return res.status(200).send({
+              success: true,
+              message: "Cart deleted as it became empty",
+            });
           }
         } else {
           cart.products[productIndex].quantity -= 1;
@@ -166,7 +164,7 @@ const getCartItems = async (req, res) => {
         name: product.name,
         slug: product.slug,
         price: product.price,
-        discountPrice: (product.discount / 100) * product.price,
+        priceWithDiscount: product.price - (product.discount / 100) * product.price,
         img: product.image ? product.image.imageUrl : null,
         quantity: productInCart.quantity,
         parentCategoryName: parentCategoryMap[product.parent_category_id] || "",
