@@ -463,7 +463,7 @@ const bulkUploadProducts = async (req, res) => {
         const generateStatus = (normalizedItem) => {
           if (
             !normalizedItem[removeGapFromValue("hsncode")] ||
-            !normalizedItem[removeGapFromValue("gst")]
+            !normalizedItem[removeGapFromValue("gstrate")]
           ) {
             return "draft";
           } else {
@@ -487,7 +487,7 @@ const bulkUploadProducts = async (req, res) => {
           ),
           isCustomizable: false,
           hsnCode: normalizedItem[removeGapFromValue("HSNCode")],
-          tax_rate: 0.0,
+          tax_rate: normalizedItem[removeGapFromValue("GSTRate")],
           short_description:
             normalizedItem[removeGapFromValue("ShortDescription")],
           description: normalizedItem[removeGapFromValue("LongDescription")],
