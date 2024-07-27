@@ -6,21 +6,37 @@ const {
   deleteS3Folder,
   listS3ObjectsWithFolders,
 } = require("../utlis/awsTools");
+const { processImage } = require("../utlis/imageCompressor");
 const { parseS3Url } = require("../utlis/parseS3Url");
 
 const uploadFile = async (req, res) => {
   try {
     const { folderName } = req?.body;
-    console.log(folderName);
+
+    // Process each file in req.files
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          // Compress and process the image
+          const compressedBuffer = await processImage(file.buffer);
+          console.log(compressedBuffer, "compressedBuffer");
+
+          // Replace the file buffer with the compressed buffer
+          file.buffer = compressedBuffer;
+        } catch (error) {
+          return res.status(400).json({ error: error.message });
+        }
+      }
+    }
+
+    // Upload the compressed images to S3
     const imageURLs = await uploadToS3(folderName)(req, res, async () => {
       try {
-        console.log(req.fileUrls);
-
         const uploadUrl = {
           imageURLs: req.fileUrls[0],
         };
-        console.log(uploadUrl);
 
+        console.log(uploadUrl);
         return res.status(201).json({
           success: true,
           message: "Media Link created successfully",
