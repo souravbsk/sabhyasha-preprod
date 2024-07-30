@@ -179,7 +179,7 @@ const deleteCouponById = async (req, res) => {
 };
 
 const getUserAllCoupons = async (req, res) => {
-  console.log("dsf");
+  console.log("dsfdsfdsfsdfdsfdsdsddf");
   try {
     const userEmail = req.query.email;
     console.log("Email:", userEmail);
@@ -193,9 +193,10 @@ const getUserAllCoupons = async (req, res) => {
         expiryDate: { $gte: currentDate },
       })
       .sort({ expiryDate: -1 })
-      .select("-type -activeDate") // Exclude type and activeDate fields
+      .select("-activeDate") // Exclude type and activeDate fields
       .lean(); // Convert Mongoose documents to plain JavaScript objects
 
+      console.log(couponsData,'fdsfsdfsdf')
     if (!couponsData || couponsData.length === 0) {
       return res.status(404).json({ error: "No valid coupons found" });
     }

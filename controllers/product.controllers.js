@@ -73,7 +73,7 @@ const createProduct = async (req, res) => {
 
     // Save the new product to the database
     const insertedProduct = await newProductData.save();
-    console.log(insertedProduct)
+    console.log(insertedProduct);
 
     // if (!insertedProduct) {
     //   return res.status(404).json({ error: "Product not created" });
@@ -614,13 +614,22 @@ const showProducts = async (req, res) => {
     let { productLength = 15 } = req.query;
 
     // Fetch the total number of products
-    const totalProducts = await Product.countDocuments();
+    const totalProducts = await Product.countDocuments({
+      status: "published",
+      quantity: { $gt: 0 },
+    });
 
     // Adjust productLength if it's greater than the total number of products
     productLength = Math.min(parseInt(productLength), totalProducts);
 
     // Define the aggregation pipeline
     const pipeline = [
+      {
+        $match: {
+          status: "published",
+          quantity: { $gt: 0 },
+        },
+      },
       {
         $project: {
           title: "$name",
@@ -861,10 +870,6 @@ const searchByProductName = async (req, res) => {
     // Check if products array is empty
     if (products.length === 0) {
       return res.json({ products: [], totalProducts: 0 });
-
-      // return res
-      //   .status(404)
-      //   .json({ message: "No products found.", products: [] });
     }
 
     // Send response with products and total count
@@ -931,7 +936,8 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
         relevantSubcategories.forEach((subcat) => {
           const countData = subcategoryCounts.find(
             (sc) =>
-              sc._id.parent_category_id.toString() === parentCat._id.toString() &&
+              sc._id.parent_category_id.toString() ===
+                parentCat._id.toString() &&
               sc._id.category_id.toString() === cat._id.toString() &&
               sc._id.subcategory_id.toString() === subcat._id.toString()
           );
@@ -988,7 +994,10 @@ const filterProducts = async (req, res) => {
 
     console.log(req.query);
     // Build the query object
-    let query = {};
+
+    let query = {
+      status: "published",
+    };
 
     // Function to get IDs from slug
     const getIdsFromSlugs = async (slugArray, model) => {
