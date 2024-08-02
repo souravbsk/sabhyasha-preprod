@@ -1,4 +1,4 @@
-const { shippingAddress } = require("../models/AddressModel");
+const { addresses } = require("../models/addressModel");
 const { users } = require("../models/userModel");
 const { uploadToS3 } = require("../utlis/awsTools");
 const bcrypt = require("bcryptjs");
@@ -13,11 +13,11 @@ const getProfile = async (req, res) => {
         .send({ success: false, message: "User id is required" });
     }
     const user = await users.findById(userId).select('-password');;
-    const shippingAdds = await shippingAddress.find({
+    const shippingAdds = await addresses.find({
       user: userId,
       type: "shipping",
     });
-    const billingAdds = await shippingAddress.find({
+    const billingAdds = await addresses.find({
       user: userId,
       type: "billing",
     });

@@ -1,4 +1,4 @@
-const { shippingAddress } = require("../models/AddressModel");
+const { addresses } = require("../models/addressModel");
 const { users } = require("../models/userModel");
 
 const getAllShippingAddress = async (req, res) => {
@@ -12,11 +12,11 @@ const getAllShippingAddress = async (req, res) => {
     const user = await users
       .findById(userId)
       .select("billingAddressIds shippingAddressIds displayName mobile");
-    const shippingAdds = await shippingAddress.find({
+    const shippingAdds = await addresses.find({
       user: userId,
       type: "shipping",
     });
-    const billingAdds = await shippingAddress
+    const billingAdds = await addresses
       .find({
         user: userId,
         type: "billing",

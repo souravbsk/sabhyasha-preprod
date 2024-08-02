@@ -1,4 +1,5 @@
-const { shippingAddress } = require("../models/AddressModel");
+
+const { addresses } = require("../models/addressModel.js");
 const { users } = require("../models/userModel");
 
 const addAddress = async (req, res) => {
@@ -19,7 +20,7 @@ const addAddress = async (req, res) => {
         .send({ success: false, message: "Invalid address type" });
     }
 
-    const newAddress = new shippingAddress({
+    const newAddress = new addresses({
       user: userId,
       type,
       name,
@@ -50,7 +51,7 @@ const removeAddress = async (req, res) => {
     const { addressId } = req.params;
 
     // Find the address by ID
-    const address = await shippingAddress.findById(addressId);
+    const address = await addresses.findById(addressId);
 
     if (!address) {
       return res
