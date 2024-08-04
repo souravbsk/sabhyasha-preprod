@@ -1,0 +1,31 @@
+name: Deploy Sabhyasha to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Copy files to EC2
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./ ubuntu@ec2-13-126-147-148.ap-south-1.compute.amazonaws.com:/home/ubuntu/sabhyasha/sabhyasha-backend
+
+      - name: Install dependencies and restart server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@ec2-13-126-147-148.ap-south-1.compute.amazonaws.com << 'EOF'
+          cd /home/ubuntu/sabhyasha/sabhyasha-backend
+          npm install
+          pm2 restart all
+          EOF
