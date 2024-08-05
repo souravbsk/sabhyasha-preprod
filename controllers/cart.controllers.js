@@ -164,7 +164,12 @@ const getCartItems = async (req, res) => {
         name: product.name,
         slug: product.slug,
         price: product.price,
-        priceWithDiscount: product.price - (product.discount / 100) * product.price,
+        shippingCost: {
+          included: product.is_shipping_cost_included,
+          cost: product.additional_shipping_cost,
+        },
+        priceWithDiscount:
+          product.price - (product.discount / 100) * product.price,
         img: product.image ? product.image.imageUrl : null,
         quantity: productInCart.quantity,
         parentCategoryName: parentCategoryMap[product.parent_category_id] || "",
