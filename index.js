@@ -59,7 +59,7 @@ const { checkoutRoute } = require("./routes/cheackout.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
-  res.send("Hello World from server list deploy with github pipline action ");
+  res.send("Hello World from server list deploy with github pipline action by souravbsk ");
 });
 //blog api start
 app.use("/api/blog", blogRoute);
