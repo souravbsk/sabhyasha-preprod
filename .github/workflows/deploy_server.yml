@@ -32,22 +32,22 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_DNS }} << EOF
           cd /home/ubuntu/sabhyasha/sabhyasha-backend
           cat <<EOT > .env
-          SECRET_KEY=${{ secrets.SECRET_KEY }}
-          CLOUDNAME=${{ secrets.CLOUDNAME }}
-          CLOUDAPIKEY=${{ secrets.CLOUDAPIKEY }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          CLOUDAPISECRET=${{ secrets.CLOUDAPISECRET }}
-          S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
-          S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}
-          S3_REGION=${{ secrets.S3_REGION }}
-          S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
-          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          CALLBACK_URL=${{ secrets.CALLBACK_URL }}
-          ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
-          MONGODB_URI=${{ secrets.MONGODB_URI }}
-          MAIL_ID=${{ secrets.MAIL_ID }}
-          MAIL_PASS=${{ secrets.MAIL_PASS }}
+          SECRET_KEY=${{ vars.SECRET_KEY }}
+          CLOUDNAME=${{ vars.CLOUDNAME }}
+          CLOUDAPIKEY=${{ vars.CLOUDAPIKEY }}
+          JWT_SECRET=${{ vars.JWT_SECRET }}
+          CLOUDAPISECRET=${{ vars.CLOUDAPISECRET }}
+          S3_SECRET_KEY=${{ vars.S3_SECRET_KEY }}
+          S3_ACCESS_KEY=${{ vars.S3_ACCESS_KEY }}
+          S3_REGION=${{ vars.S3_REGION }}
+          S3_BUCKET_NAME=${{ vars.S3_BUCKET_NAME }}
+          GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ vars.GOOGLE_CLIENT_SECRET }}
+          CALLBACK_URL=${{ vars.CALLBACK_URL }}
+          ACCESS_TOKEN_SECRET=${{ vars.ACCESS_TOKEN_SECRET }}
+          MONGODB_URI=${{ vars.MONGODB_URI }}
+          MAIL_ID=${{ vars.MAIL_ID }}
+          MAIL_PASS=${{ vars.MAIL_PASS }}
           EOT
           npm install
           pm2 restart all
