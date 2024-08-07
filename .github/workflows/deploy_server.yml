@@ -34,3 +34,22 @@ jobs:
           npm install
           pm2 restart all
           EOF
+
+      - name: Set environment variables
+        run: |
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "CLOUDNAME=${{ secrets.CLOUDNAME }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "CLOUDAPIKEY=${{ secrets.CLOUDAPIKEY }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "CLOUDAPISECRET=${{ secrets.CLOUDAPISECRET }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "S3_REGION=${{ secrets.S3_REGION }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "CALLBACK_URL=${{ secrets.CALLBACK_URL }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "MAIL_ID=${{ secrets.MAIL_ID }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
+          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> /home/ubuntu/sabhyasha/sabhyasha-backend/.env
