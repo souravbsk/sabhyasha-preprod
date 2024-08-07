@@ -29,24 +29,26 @@ jobs:
 
       - name: Set environment variables and install dependencies
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_DNS }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_DNS }} << EOF
           cd /home/ubuntu/sabhyasha/sabhyasha-backend
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          echo "CLOUDNAME=${{ secrets.CLOUDNAME }}" >> .env
-          echo "CLOUDAPIKEY=${{ secrets.CLOUDAPIKEY }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "CLOUDAPISECRET=${{ secrets.CLOUDAPISECRET }}" >> .env
-          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
-          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
-          echo "S3_REGION=${{ secrets.S3_REGION }}" >> .env
-          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "CALLBACK_URL=${{ secrets.CALLBACK_URL }}" >> .env
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env
-          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
-          echo "MAIL_ID=${{ secrets.MAIL_ID }}" >> .env
-          echo "MAIL_PASS=${{ secrets.MAIL_PASS }}" >> .env
+          cat <<EOT > .env
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          CLOUDNAME=${{ secrets.CLOUDNAME }}
+          CLOUDAPIKEY=${{ secrets.CLOUDAPIKEY }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          CLOUDAPISECRET=${{ secrets.CLOUDAPISECRET }}
+          S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
+          S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}
+          S3_REGION=${{ secrets.S3_REGION }}
+          S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          CALLBACK_URL=${{ secrets.CALLBACK_URL }}
+          ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+          MONGODB_URI=${{ secrets.MONGODB_URI }}
+          MAIL_ID=${{ secrets.MAIL_ID }}
+          MAIL_PASS=${{ secrets.MAIL_PASS }}
+          EOT
           npm install
           pm2 restart all
           EOF
