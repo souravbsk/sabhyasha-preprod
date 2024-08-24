@@ -4,11 +4,14 @@ const {
   toggleItem,
   clearCart,
   removeProductById,
+  cartAmountUpdate,
 } = require("../controllers/cart.controllers.js");
 const { verifyJwt } = require("../middlewares/verifyJWT");
 
 const cartRouter = require("express").Router();
 
+
+cartRouter.put("/update_cart_amount", verifyJwt,cartAmountUpdate); // done
 cartRouter.put("/:productId", verifyJwt, toggleItem); // done
 cartRouter.get("/", verifyJwt, getCartItems); // done
 cartRouter.put("/update/:productId", verifyJwt, updateItem); // done

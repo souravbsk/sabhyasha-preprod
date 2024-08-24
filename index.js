@@ -20,7 +20,7 @@ app.use(
 app.use(express.json());
 app.use(bodyParser.json({ limit: '100mb' }));
 app.use(bodyParser.raw({ limit: "100mb" }));
-
+app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 app.use(
@@ -56,6 +56,7 @@ const { cartRouter } = require("./routes/cart.routes.js");
 const { wishListRouter } = require("./routes/wishlist.routes.js");
 const { userRouter } = require("./routes/user.routes.js");
 const { checkoutRoute } = require("./routes/cheackout.routes.js");
+const { paymentRoute } = require("./routes/payment.routes.js");
 
 connectDB();
 app.get("/", (req, res) => {
@@ -100,6 +101,9 @@ app.use("/api/user", userRouter);
 
 // checkout api
 app.use("/api/checkout", checkoutRoute);
+
+// payment api
+app.use("/api/payment", paymentRoute)
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);

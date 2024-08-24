@@ -3,19 +3,22 @@ const { ObjectId } = require("mongodb");
 const { carts } = require("../models/cartModel");
 const { Product } = require("../models/productModel");
 
-// Toggle Item (Add/Remove)
+const findCartAndProduct = async (userId, productId) => {
+  const cart = await carts.findOne({ userId: userId });
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  return { cart, product };
+};
+
 const toggleItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const userId = new ObjectId(req.decoded.id);
-    const cart = await carts.findOne({ userId: userId });
-    const product = await Product.findById(productId);
-
-    if (!product) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Product not found" });
-    }
+    const { cart, product } = await findCartAndProduct(userId, productId);
 
     if (cart) {
       const productIndex = cart.products.findIndex(
@@ -55,29 +58,27 @@ const toggleItem = async (req, res) => {
   }
 };
 
-// Update Quantity
 const updateItem = async (req, res) => {
   try {
     const { productId } = req.params;
     const { type } = req.body;
-    const userId = new ObjectId(req.decoded.id);
-    const product = await Product.findById(productId);
-    console.log(productId);
-    console.log(type);
-    if (!product) {
+    if (!["+", "-"].includes(type)) {
       return res
-        .status(404)
-        .send({ success: false, message: "Product not found" });
+        .status(400)
+        .send({ success: false, message: "Invalid request type" });
     }
-    let cart = await carts.findOne({ userId: userId });
+
+    const userId = new ObjectId(req.decoded.id);
+    const { cart, product } = await findCartAndProduct(userId, productId);
+
     if (!cart) {
       if (type === "+") {
-        cart = new carts({
+        const newCart = new carts({
           userId: userId,
           products: [{ productId: productId, quantity: 1 }],
           totalAmount: product.price,
         });
-        await cart.save();
+        await newCart.save();
         return res
           .status(200)
           .send({ success: true, message: "Product added to new cart" });
@@ -87,9 +88,11 @@ const updateItem = async (req, res) => {
           .send({ success: false, message: "Cart not found" });
       }
     }
+
     const productIndex = cart.products.findIndex(
       (p) => p.productId.toString() === productId
     );
+
     if (productIndex === -1) {
       if (type === "+") {
         cart.products.push({ productId: productId, quantity: 1 });
@@ -118,12 +121,9 @@ const updateItem = async (req, res) => {
           cart.products[productIndex].quantity -= 1;
           cart.totalAmount -= product.price;
         }
-      } else {
-        return res
-          .status(400)
-          .send({ success: false, message: "Invalid request type" });
       }
     }
+
     await cart.save();
     res.status(200).send({ success: true, message: "Cart updated" });
   } catch (error) {
@@ -178,7 +178,7 @@ const getCartItems = async (req, res) => {
 
     res.status(200).send({
       success: true,
-      data: { items: response, totalAmount: cart.totalAmount },
+      data: { items: response, totalAmount: cart.totalAmount, cart},
     });
   } catch (error) {
     console.log(error);
@@ -242,10 +242,58 @@ const clearCart = async (req, res) => {
   }
 };
 
+//cartamountupdate
+
+const cartAmountUpdate = async (req, res) => {
+  try {
+    const {
+      totalItems,
+      count,
+      priceWithDiscount,
+      shippingCharge,
+      checkOutAmount,
+      coupon,
+      couponAmount,
+    } = req.body;
+
+    const userId = req.decoded.id; // Mongoose ObjectId is used directly
+
+    // Update the cart for the user
+    const result = await carts.findOneAndUpdate(
+      { userId: userId },
+      {
+        $set: {
+          totalItems: totalItems,
+          count: count,
+          priceWithDiscount: priceWithDiscount,
+          shippingCharge: shippingCharge,
+          checkOutAmount: checkOutAmount,
+          coupon: coupon,
+          couponAmount: couponAmount,
+        },
+      },
+      { new: true, runValidators: true } // Return the updated document and run validation
+    );
+
+    if (!result) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Send success response with updated cart data
+    res.status(200).json({success:true, message: 'Cart updated successfully', cart: result });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while updating the cart' });
+  }
+};
+
+
 module.exports = {
   toggleItem,
   updateItem,
   getCartItems,
   removeProductById,
   clearCart,
+  cartAmountUpdate,
 };

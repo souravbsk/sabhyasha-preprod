@@ -15,6 +15,16 @@ const cartModel = new mongoose.Schema({
     },
   ],
   totalAmount: Number,
+  totalItems:Number,
+  count:Number,
+  priceWithDiscount:Number,
+  shippingCharge:Number,
+  checkOutAmount:Number,
+  coupon: {
+    type: mongoose.Schema.Types.Mixed, // Allows any type of object to be stored
+  },
+  
+  couponAmount:Number,
   createdAt: {
     type: Date,
     default: Date.now(),
