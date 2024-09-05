@@ -59,6 +59,10 @@ const productModel = new mongoose.Schema({
     unique: true,
   },
   view_count: Number,
+  purchased_count: {
+    type: Number,
+    default: 0,
+  },
   productGalleryImageUrls: [String],
   customizations: [Object],
   createdAt: {

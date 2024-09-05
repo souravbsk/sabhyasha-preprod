@@ -1,28 +1,49 @@
 const mongoose = require("mongoose");
+const OrderShippingStatus = require("./orderShippingStatus.model");
 
 const orderSchema = new mongoose.Schema({
   orderId: {
     type: String,
     required: true,
     unique: true,
-    index: true, // Index for faster queries
+    index: true,
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    index: true, // Index for user-based queries
+  invoice_no: {
+    type: Number,
   },
-  items: [
+  invoice_prefix: {
+    type: String,
+    default: "",
+  },
+  invoice_suffix: {
+    type: String,
+  },
+
+  email: {
+    type: String,
+    required: true, // Ensure every order has an email
+    index: true,
+  },
+  order_status_by_mail: {
+    type: Boolean,
+    require: true,
+    default: false,
+  },
+
+  products: [
     {
-      productId: {
+      _id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
+        ref: "products",
         required: true,
       },
       name: {
         type: String,
         required: true,
+      },
+      slug: {
+        type: String,
+        require: true,
       },
       quantity: {
         type: Number,
@@ -32,7 +53,17 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
-      discountPrice: {
+      shippingCost: {
+        included: {
+          type: Boolean,
+          default: false,
+        },
+        cost: {
+          type: Number,
+          default: null,
+        },
+      },
+      priceWithDiscount: {
         type: Number,
         default: 0.0,
       },
@@ -40,45 +71,72 @@ const orderSchema = new mongoose.Schema({
   ],
   paymentInfo: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "PaymentTransaction",
+    ref: "paymentTransaction",
     required: true,
   },
   billingAddress: {
     country: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    first_name: { type: String, required: true },
+    last_name: { type: String, required: true },
     address: { type: String, required: true },
     apartment: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
-    postalCode: { type: String, required: true },
+    postal_code: { type: String, required: true },
     mobile: { type: String, required: true },
   },
   shippingAddress: {
     country: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    first_name: { type: String, required: true },
+    last_name: { type: String, required: true },
     address: { type: String, required: true },
     apartment: { type: String },
     city: { type: String, required: true },
     state: { type: String, required: true },
-    postalCode: { type: String, required: true },
+    postal_code: { type: String, required: true },
     mobile: { type: String, required: true },
   },
-  totalAmount: {
+  amount: {
     type: Number,
     required: true,
+    default: 0.0,
+  },
+  subTotal: {
+    type: Number,
+    required: true,
+    default: 0.0,
   },
   discountAmount: {
+    type: Number,
+    default: 0.0,
+  },
+  couponAmount: {
     type: Number,
     default: 0.0,
   },
   status: {
     type: String,
     required: true,
-    enum: ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Refunded"],
-    index: true, // Index for order status queries
+    enum: [
+      "pending",
+      "confirmed",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "refunded",
+    ],
+    default: "pending",
+    index: true,
+    set: (v) => v.toLowerCase(),
   },
+
+  shippingStatusId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "orderShippingStatus",
+    required: true,
+    index: true,
+  },
+
   orderDate: {
     type: Date,
     default: Date.now,
@@ -87,22 +145,50 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "failed", "success"],
+    default: "pending",
+    set: (v) => v.toLowerCase(),
+  },
   trackingNumber: {
     type: String,
     unique: true,
-    sparse: true, // Sparse index, not all orders may have a tracking number
+    sparse: true,
+  },
+  coupon: {
+    code: {
+      type: String,
+      default: "",
+    },
+    type: {
+      type: String,
+      default: "",
+    },
+    discountAmount: {
+      type: Number,
+      default: 0.0,
+    },
+    minCartAmount: {
+      type: Number,
+      default: 0.0,
+    },
+  },
+  orderNotes: {
+    type: String,
+    default: "",
   },
 });
 
-// Middleware to automatically update the `updatedAt` field
+// Middleware to update the `updatedAt` field on every save
 orderSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// Index for compound queries involving userId and order status
+// Compound index for user and status queries
 orderSchema.index({ userId: 1, status: 1 });
 
-const Order = mongoose.model("Order", orderSchema);
+const Order = mongoose.model("order", orderSchema);
 
 module.exports = { Order };

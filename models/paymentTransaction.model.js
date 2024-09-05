@@ -7,10 +7,16 @@ const paymentTransactionSchema = new mongoose.Schema({
     unique: true,
     index: true, // Index for faster queries
   },
+
+  orderid: {
+    type: String,
+    unique: true,
+    index: true, // Index for faster queries
+  },
+
   mihpayid: {
     type: String,
-    required: true,
-    unique: true,
+    sparse: true, // Allow multiple null values
     index: true, // Index for faster queries
   },
   amount: {
@@ -39,13 +45,12 @@ const paymentTransactionSchema = new mongoose.Schema({
   },
   mode: {
     type: String,
-    required: true,
   },
   status: {
     type: String,
-    required: true,
-    enum: ["Pending", "Success", "Failed", "Refunded"], // Includes additional possible status
+    enum: ["pending", "success", "failed", "refunded", "failure"], // Includes additional possible status
     index: true, // Index for faster queries
+    set: (v) => v.toLowerCase(),
   },
   unmappedstatus: {
     type: String,
@@ -56,11 +61,12 @@ const paymentTransactionSchema = new mongoose.Schema({
   },
   net_amount_debit: {
     type: Number,
-    required: true,
+  },
+  meCode: {
+    type: String,
   },
   addedon: {
     type: Date,
-    required: true,
   },
   hash: {
     type: String,
@@ -68,11 +74,9 @@ const paymentTransactionSchema = new mongoose.Schema({
   },
   payment_source: {
     type: String,
-    required: true,
   },
   PG_TYPE: {
     type: String,
-    required: true,
   },
   bank_ref_num: {
     type: String,
@@ -84,6 +88,9 @@ const paymentTransactionSchema = new mongoose.Schema({
     type: String,
   },
   error_Message: {
+    type: String,
+  },
+  cardCategory: {
     type: String,
   },
   cardnum: {
@@ -110,11 +117,12 @@ paymentTransactionSchema.pre("save", function (next) {
 
 // Define compound indexes for frequently queried fields together
 paymentTransactionSchema.index({ txnid: 1, status: 1 });
-paymentTransactionSchema.index({ mihpayid: 1, status: 1 });
+paymentTransactionSchema.index({ mihpayid: 1, status: 1 }, { sparse: true });
 
 const PaymentTransaction = mongoose.model(
-  "PaymentTransaction",
-  paymentTransactionSchema
+  "paymentTransaction",
+  paymentTransactionSchema,
+  "paymentTransaction"
 );
 
 module.exports = { PaymentTransaction };

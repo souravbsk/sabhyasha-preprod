@@ -36,7 +36,7 @@ const userModel = new mongoose.Schema({
   productsBought: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
+      ref: "products",
     },
   ],
   passwordResetToken: String,

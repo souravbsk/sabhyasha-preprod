@@ -823,61 +823,42 @@ const viewProduct = async (req, res) => {
 
 const searchByProductName = async (req, res) => {
   try {
-    const { keyword, page = 1, limit = 10 } = req.query; // Default limit to 10 per page
+    const { keyword, page = 1, limit = 10 } = req.query;
 
-    console.log("Search Query:", req.query); // Log the query parameters for debugging
+    // Log the query parameters for debugging
+    console.log("Search Query:", req.query);
 
     // Check if keyword exists and is not empty
     if (!keyword || keyword.trim() === "") {
       return res.status(400).json({ error: "Keyword is required for search." });
     }
 
-    // Convert page and limit to numbers
-    const parsedPage = parseInt(req.query.page) || 1;
+    const parsedPage = parseInt(page) || 1;
     const parsedLimit = parseInt(limit);
 
     // Validate page and limit values
-    if (isNaN(parsedPage) || parsedPage < 1) {
-      return res.status(400).json({ error: "Invalid page number." });
-    }
-
-    if (isNaN(parsedLimit) || parsedLimit < 1) {
-      return res.status(400).json({ error: "Invalid limit value." });
+    if (parsedPage < 1 || parsedLimit < 1) {
+      return res.status(400).json({ error: "Invalid page or limit value." });
     }
 
     // Calculate skip based on page and limit
     const skip = (parsedPage - 1) * parsedLimit;
 
-    // Perform a text search on the 'name' field using $regex and $options: 'i', with pagination
-    const productsQuery = Product.find({
-      name: { $regex: keyword, $options: "i" },
-    })
-      .select("name price quantity image slug")
-      .skip(skip)
-      .limit(parsedLimit);
+    // Perform the search query with pagination
+    const [products, totalProducts] = await Promise.all([
+      Product.find({ name: { $regex: keyword, $options: "i" } })
+        .select("name price quantity image slug")
+        .skip(skip)
+        .limit(parsedLimit)
+        .exec(),
+      Product.countDocuments({ name: { $regex: keyword, $options: "i" } }),
+    ]);
 
-    // Execute the query to get products
-    const products = await productsQuery.exec();
-
-    // Query to get total count of products matching the search criteria
-    const totalProductsQuery = Product.countDocuments({
-      name: { $regex: keyword, $options: "i" },
-    });
-
-    // Execute the query to get total count of products
-    const totalProducts = await totalProductsQuery.exec();
-
-    // Check if products array is empty
-    if (products.length === 0) {
-      return res.json({ products: [], totalProducts: 0 });
-    }
-
-    // Send response with products and total count
-    console.log(products);
+    console.log(products)
     res.json({ products, totalProducts });
   } catch (err) {
-    console.error("Error searching products:", err); // Log any errors for debugging
-    res.status(500).json({ error: err.message });
+    console.error("Error searching products:", err);
+    res.status(500).json({ error: "An error occurred while searching for products." });
   }
 };
 
