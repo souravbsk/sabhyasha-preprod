@@ -89,6 +89,7 @@ const loginUser = async (req, res, next) => {
 const googleLoginCallback = async (req, res) => {
   if (req.user) {
     const user = req.user;
+    console.log(user,'user firendly');
     const token = jwt.sign(
       {
         email: user.email,
@@ -99,12 +100,12 @@ const googleLoginCallback = async (req, res) => {
         expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
       }
     );
-res.cookie("jwt-token", token, {
-  domain: ".sabhyasha.com", // Cookie available on all subdomains
-  httpOnly: true,
-  sameSite: "Strict",
-  maxAge: 60 * 60 * 24 * 20 * 1000,
-});
+    res.cookie("jwt-token", token, {
+      domain: ".sabhyasha.com", // Cookie available on all subdomains
+      httpOnly: true,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 24 * 20 * 1000,
+    });
 
     res.redirect("https://www.sabhyasha.com/store");
   } else {

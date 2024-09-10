@@ -950,7 +950,6 @@ const getDeatailedProductCountByCategoryWise = async (req, res) => {
       return acc;
     }, {});
 
-    console.log(result);
 
     res.send({ success: true, data: result });
   } catch (error) {

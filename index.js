@@ -13,7 +13,8 @@ require("dotenv").config();
 // changed cors origin to * for testing
 const allowedOrigins = [
   "https://www.sabhyasha.com",  // Main frontend
-  "https://sabhyasha.com", // Admin dashboard
+  "https://sabhyasha.com",
+  'http://localhost:5173' // Admin dashboard
   // Add more domains as needed
 ];
 

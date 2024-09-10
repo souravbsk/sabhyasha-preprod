@@ -337,7 +337,6 @@ const getAllCategoryForShop = async (req, res) => {
       },
     ]);
 
-    console.log(categoryCollection);
     res.status(200).json(categoryCollection);
   } catch (error) {
     console.error(error);
