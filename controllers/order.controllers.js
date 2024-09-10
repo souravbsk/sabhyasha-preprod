@@ -18,6 +18,7 @@ const { carts } = require("../models/cartModel");
 const OrderHistory = require("../models/orderHistory.model");
 const OrderShippingStatus = require("../models/orderShippingStatus.model");
 const { default: mongoose } = require("mongoose");
+const { sendMail } = require("../utlis/emailUtils");
 
 //create order with payment
 const createOrderWithPayment = async (req, res) => {
@@ -315,9 +316,8 @@ const paymentSuccess = async (req, res) => {
       await session.commitTransaction();
 
       // Generate order token ID and redirect
-      const orderTokenId = generateJwtTokenWithOrderId(order);
       res.redirect(
-        `http://localhost:5173/checkout/order-received/?orderId=${orderTokenId}`
+        `http://localhost:5173/checkout/order-received/?orderId=${order?.orderId}`
       );
     } else {
       console.log(
@@ -418,11 +418,10 @@ const paymentFailure = async (req, res) => {
     console.log(
       `Payment failure: Transaction ${txnid} failed. Order ${order.orderId} cancelled.`
     );
-    const orderTokenId = generateJwtTokenWithOrderId(order);
 
     // Redirect the user to the payment failure page
     res.redirect(
-      `http://localhost:5173/checkout/order-received?orderId=${orderTokenId}`
+      `http://localhost:5173/checkout/order-received?orderId=${order?.orderId}`
     );
   } catch (err) {
     console.error("Error processing payment failure:", err);
@@ -432,11 +431,10 @@ const paymentFailure = async (req, res) => {
 
 const getOrderSummaryAfterPay = async (req, res) => {
   try {
-    const userOrderIdToken = req.query.orderId;
-    console.log(userOrderIdToken, "first");
+    const orderId = req.query.orderId;
 
-    const orderId = await verifyJwtOrderId(userOrderIdToken);
-    console.log(orderId);
+
+
 
     if (!orderId) {
       return res
@@ -489,10 +487,33 @@ const getOrderStatus = async (req, res) => {
   }
 };
 
+const sendEmailUser = async (req, res) => {
+  try {
+    const to = "souravbsk01@gmail.com";
+    const subject = "test-email";
+    const body = {
+      text: "hello world",
+    };
+
+    const result = await sendMail(to, subject, body);
+    console.log(result);
+    res.send("hello");
+  } catch (error) {
+    console.error("Error fetching order summary:", error);
+    if (error?.error === "Unauthorized access") {
+      return res.status(401).json(error);
+    }
+    return res
+      .status(500)
+      .json({ success: false, error: "Failed to process payment success" });
+  }
+};
+
 module.exports = {
   createOrderWithPayment,
   paymentSuccess,
   paymentFailure,
   getOrderSummaryAfterPay,
   getOrderStatus,
+  sendEmailUser,
 };
