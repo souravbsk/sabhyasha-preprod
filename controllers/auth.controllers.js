@@ -100,10 +100,10 @@ const googleLoginCallback = async (req, res) => {
       }
     );
     res.cookie("jwt-token", token);
-    res.redirect("https://sabhyasha.com/store");
+    res.redirect("https://www.sabhyasha.com/store");
   } else {
     console.log("User authentication failed");
-    res.redirect("https://sabhyasha.com/login");
+    res.redirect("https://www.sabhyasha.com/login");
   }
 };
 
