@@ -100,11 +100,12 @@ const googleLoginCallback = async (req, res) => {
         expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
       }
     );
-    res.cookie("jwt-token", token, {
-      domain: ".sabhyasha.com", // Cookie available on all subdomains
-      httpOnly: true,
-      sameSite: "Strict",
-    });
+res.cookie("jwt-token", token, {
+  domain: ".sabhyasha.com",  // Ensure cookie is accessible across all subdomains
+  path: "/",                 // Make cookie available across all paths
+  httpOnly: false,           // Allow JavaScript to access the cookie // Send over HTTPS in production
+  sameSite: "Strict",        // Restrict cross-site access
+});
 
     res.redirect("https://www.sabhyasha.com/store");
   } else {
