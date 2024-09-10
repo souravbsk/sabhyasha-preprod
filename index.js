@@ -14,8 +14,6 @@ require("dotenv").config();
 const allowedOrigins = [
   "https://www.sabhyasha.com",  // Main frontend
   "https://sabhyasha.com", // Admin dashboard
-  "http://www.sabhyasha.com",  // Store subdomain
-  "http://sabhyasha.com"
   // Add more domains as needed
 ];
 
