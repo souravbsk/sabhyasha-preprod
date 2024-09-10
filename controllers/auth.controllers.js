@@ -99,11 +99,17 @@ const googleLoginCallback = async (req, res) => {
         expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
       }
     );
-    res.cookie("jwt-token", token);
-    res.redirect("http://localhost:5173/store");
+res.cookie("jwt-token", token, {
+  domain: ".sabhyasha.com", // Cookie available on all subdomains
+  httpOnly: true,
+  sameSite: "Strict",
+  maxAge: 60 * 60 * 24 * 20 * 1000,
+});
+
+    res.redirect("https://www.sabhyasha.com/store");
   } else {
     console.log("User authentication failed");
-    res.redirect("http://localhost:5173/login");
+    res.redirect("https://www.sabhyasha.com/login");
   }
 };
 

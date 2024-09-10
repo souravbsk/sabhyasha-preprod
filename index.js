@@ -11,12 +11,24 @@ const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
 // changed cors origin to * for testing
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  "https://www.sabhyasha.com",  // Main frontend
+  "https://sabhyasha.com", // Admin dashboard
+  // Add more domains as needed
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // If the request comes from a domain in allowedOrigins, allow it
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,  // Allow credentials (cookies)
+}));
+
 app.use(express.json());
 app.use(bodyParser.json({ limit: '100mb' }));
 app.use(bodyParser.raw({ limit: "100mb" }));
