@@ -104,7 +104,6 @@ const googleLoginCallback = async (req, res) => {
       domain: ".sabhyasha.com", // Cookie available on all subdomains
       httpOnly: true,
       sameSite: "Strict",
-      maxAge: 60 * 60 * 24 * 20 * 1000,
     });
 
     res.redirect("https://www.sabhyasha.com/store");
