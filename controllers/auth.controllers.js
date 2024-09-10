@@ -100,7 +100,7 @@ const googleLoginCallback = async (req, res) => {
       }
     );
 res.cookie("jwt-token", token, {
-  path: "/",
+  domain: ".sabhyasha.com", // Cookie available on all subdomains
   httpOnly: true,
   sameSite: "Strict",
   maxAge: 60 * 60 * 24 * 20 * 1000,
