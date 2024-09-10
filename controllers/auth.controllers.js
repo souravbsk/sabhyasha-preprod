@@ -103,7 +103,7 @@ const googleLoginCallback = async (req, res) => {
 res.cookie("jwt-token", token, {
   domain: ".sabhyasha.com",  // Ensure cookie is accessible across all subdomains
   path: "/",                 // Make cookie available across all paths
-  httpOnly: false,           // Allow JavaScript to access the cookie // Send over HTTPS in production
+  httpOnly: true,           // Allow JavaScript to access the cookie // Send over HTTPS in production
   sameSite: "Strict",        // Restrict cross-site access
 });
 
