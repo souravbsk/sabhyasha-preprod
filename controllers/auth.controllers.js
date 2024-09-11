@@ -100,12 +100,12 @@ const googleLoginCallback = async (req, res) => {
         expiresIn: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 20,
       }
     );
-res.cookie("jwt-token", token, {
-  domain: ".sabhyasha.com",  // Ensure cookie is accessible across all subdomains
-  path: "/",                 // Make cookie available across all paths
-  httpOnly: false,           // Allow JavaScript to access the cookie // Send over HTTPS in production
-  sameSite: "Strict",        // Restrict cross-site access
-});
+    res.cookie("jwt-token", token, {
+      domain: ".sabhyasha.com", // Ensure cookie is accessible across all subdomains
+      path: "/", // Make cookie available across all paths
+      httpOnly: false, // Allow JavaScript to access the cookie // Send over HTTPS in production
+      sameSite: "Strict", // Restrict cross-site access
+    });
 
     res.redirect("https://www.sabhyasha.com/store");
   } else {
@@ -117,18 +117,19 @@ res.cookie("jwt-token", token, {
 const logoutUser = (req, res) => {
   req.logout(function (err) {
     if (err) {
-      console.log(err);
+      console.log("Logout error:", err);
       return res.status(500).json({ success: false, message: "Logout failed" });
     }
-    // Clear JWT cookie if it's set in the cookie
+
     res.clearCookie("jwt-token", {
-      path: "/", // Make sure the path matches the one used when setting the cookie
-      domain: ".sabhyasha.com", // Adjust the domain if necessary
-      httpOnly: true, // Keep httpOnly as it was set initially
-      secure: process.env.NODE_ENV === "production", // Secure only for HTTPS in production
+      domain: ".sabhyasha.com", // Ensure this matches the domain used when setting the cookie
+      path: "/", // Match the path used when setting the cookie
+      httpOnly: false, // Same as the cookie settings you used
+      sameSite: "Strict", // SameSite policy as before
     });
 
-    res.json({ success: true, message: "Logged out successfully" });
+    // Or, if you prefer to send JSON:
+    res.status(200).json({ success: true, message: "Logged out successfully" });
   });
 };
 
