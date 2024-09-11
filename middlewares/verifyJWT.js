@@ -10,6 +10,12 @@ const verifyJwt = (req, res, next) => {
   }
   const token = authorization.split(" ")[1];
 
+  if (!token) {
+    return res.status(401).json({
+      error: true,
+      message: "Unauthorized access. Invalid token format.",
+    });
+  }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     console.log(decoded);
     if (err) {

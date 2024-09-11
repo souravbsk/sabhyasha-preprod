@@ -89,7 +89,7 @@ const loginUser = async (req, res, next) => {
 const googleLoginCallback = async (req, res) => {
   if (req.user) {
     const user = req.user;
-    console.log(user,'user firendly');
+    console.log(user, "user firendly");
     const token = jwt.sign(
       {
         email: user.email,
@@ -117,9 +117,17 @@ const logoutUser = (req, res) => {
   req.logout(function (err) {
     if (err) {
       console.log(err);
-    } else {
-      res.json({ success: true, message: "Logged out successfully" });
+      return res.status(500).json({ success: false, message: "Logout failed" });
     }
+    // Clear JWT cookie if it's set in the cookie
+    res.clearCookie("jwt-token", {
+      path: "/", // Make sure the path matches the one used when setting the cookie
+      domain: ".sabhyasha.com", // Adjust the domain if necessary
+      httpOnly: true, // Keep httpOnly as it was set initially
+      secure: process.env.NODE_ENV === "production", // Secure only for HTTPS in production
+    });
+
+    res.json({ success: true, message: "Logged out successfully" });
   });
 };
 
