@@ -105,16 +105,16 @@ const googleLoginCallback = async (req, res) => {
     const cookieDomain = isProduction ? ".sabhyasha.com" : "localhost";
 
     res.cookie("jwt-token", token, {
-      domain: cookieDomain, // Ensure cookie is accessible across all subdomains
+      domain: ".sabhyasha.com", // Ensure cookie is accessible across all subdomains
       path: "/", // Make cookie available across all paths
       httpOnly: false, // Allow JavaScript to access the cookie // Send over HTTPS in production
       sameSite: "Strict", // Restrict cross-site access
     });
 
-    res.redirect(`${process.env.DOMAIN}/store`);
+    res.redirect(`https://www.sabhyasha.com/store`);
   } else {
     console.log("User authentication failed");
-    res.redirect(`${process.env.DOMAIN}/login`);
+    res.redirect(`https://www.sabhyasha.com/login`);
   }
 };
 
@@ -125,11 +125,11 @@ const logoutUser = (req, res) => {
       return res.status(500).json({ success: false, message: "Logout failed" });
     }
 
-    const isProduction = process.env.NODE_ENV === "production";
-    const cookieDomain = isProduction ? ".sabhyasha.com" : "localhost";
+    // const isProduction = process.env.NODE_ENV === "production";
+    // const cookieDomain = isProduction ? ".sabhyasha.com" : "localhost";
 
     res.clearCookie("jwt-token", {
-      domain: cookieDomain, // Ensure this matches the domain used when setting the cookie
+      domain: ".sabhyasha.com", // Ensure this matches the domain used when setting the cookie
       path: "/", // Match the path used when setting the cookie
       httpOnly: false, // Same as the cookie settings you used
       sameSite: "Strict", // SameSite policy as before

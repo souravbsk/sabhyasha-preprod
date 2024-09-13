@@ -422,7 +422,7 @@ const paymentFailure = async (req, res) => {
 
     // Redirect the user to the payment failure page
     res.redirect(
-      `${process.env.DOMAIN}/checkout/order-received?orderId=${order?.orderId}`
+      `https://www.sabhyasha.com/checkout/order-received?orderId=${order?.orderId}`
     );
   } catch (err) {
     console.error("Error processing payment failure:", err);
