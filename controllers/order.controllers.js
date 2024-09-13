@@ -318,7 +318,7 @@ const paymentSuccess = async (req, res) => {
 
       // Generate order token ID and redirect
       res.redirect(
-        `https://www.sabhyasha.com/checkout/order-received/?orderId=${order?.orderId}`
+        `${process.env.DOMAIN}/checkout/order-received/?orderId=${order?.orderId}`
       );
     } else {
       console.log(
@@ -422,7 +422,7 @@ const paymentFailure = async (req, res) => {
 
     // Redirect the user to the payment failure page
     res.redirect(
-      `https://www.sabhyasha.com/checkout/order-received?orderId=${order?.orderId}`
+      `${process.env.DOMAIN}/checkout/order-received?orderId=${order?.orderId}`
     );
   } catch (err) {
     console.error("Error processing payment failure:", err);

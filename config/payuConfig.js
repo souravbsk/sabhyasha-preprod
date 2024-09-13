@@ -6,6 +6,6 @@ module.exports = {
   PAYU_MERCHANT_SALT: "S1VqEPZ98oXEXAUqWZC31GmOgonBjAYx",
   // PAYU_URL : "https://secure.payu.in/_payment", // Use the production URL
   PAYU_URL: "https://test.payu.in/_payment",
-  successUrl: `https://api.sabhyasha.com/api/order/payment-success`,
-  failureUrl: `https://api.sabhyasha.com/api/order/payment-failure`,
+  successUrl: `${process.env.NODE_SERVER}/api/order/payment-success`,
+  failureUrl: `${process.env.NODE_SERVER}/api/order/payment-failure`,
 };

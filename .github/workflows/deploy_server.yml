@@ -48,6 +48,9 @@ jobs:
           MONGODB_URI=${{ vars.MONGODB_URI }}
           MAIL_ID=${{ vars.MAIL_ID }}
           MAIL_PASS=${{ vars.MAIL_PASS }}
+          NODE_SERVER=${{ vars.NODE_SERVER }}
+          DOMAIN=${{ vars.DOMAIN }}
+          NODE_ENV=${{ vars.NODE_ENV }}
           EOT
           npm install
           pm2 restart all
