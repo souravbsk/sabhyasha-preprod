@@ -10,28 +10,53 @@ const { connectDB } = require("./utlis/connectDB");
 const cookieParser = require("cookie-parser");
 
 require("dotenv").config();
-// changed cors origin to * for testing
-const allowedOrigins = [
-  "https://www.sabhyasha.com",  // Main frontend
-  "https://sabhyasha.com",
-  'http://localhost:5173' // Admin dashboard
-  // Add more domains as needed
-];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // If the request comes from a domain in allowedOrigins, allow it
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,  // Allow credentials (cookies)
-}));
+app.use((req, res, next) => {
+  const corsWhitelist = [
+    "https://www.sabhyasha.com",
+    "https://sabhyasha.com",
+    "http://localhost:5173",
+    "https://api.sabhyasha.com",
+  ];
+
+  const origin = req.headers.origin;
+
+  // Check if origin is in the whitelist or matches regex for PayU domains
+  const isAllowedOrigin =
+    corsWhitelist.includes(origin) ||
+    /\.payu\.in$/.test(origin) || // Check regex for PayU domains
+    /\.payubiz\.in$/.test(origin);
+
+  // Allow requests from whitelisted origins
+  if (isAllowedOrigin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200); // Preflight request
+  }
+
+  next();
+});
+
+// app.use(
+//   cors({y
+//     origin: "*", // Allow all origins
+//     // credentials: true, // Allow cookies or credentials to be sent
+//   })
+// );
 
 app.use(express.json());
-app.use(bodyParser.json({ limit: '100mb' }));
+app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.raw({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -116,7 +141,7 @@ app.use("/api/user", userRouter);
 app.use("/api/checkout", checkoutRoute);
 
 // payment api
-app.use("/api/order", orderRoute)
+app.use("/api/order", orderRoute);
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);

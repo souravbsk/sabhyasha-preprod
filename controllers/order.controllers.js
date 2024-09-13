@@ -19,6 +19,7 @@ const OrderHistory = require("../models/orderHistory.model");
 const OrderShippingStatus = require("../models/orderShippingStatus.model");
 const { default: mongoose } = require("mongoose");
 const { sendMail } = require("../utlis/emailUtils");
+require("dotenv").config();
 
 //create order with payment
 const createOrderWithPayment = async (req, res) => {
@@ -141,8 +142,8 @@ const createOrderWithPayment = async (req, res) => {
       country: billing_info.country,
       zipcode: billing_info.postal_code,
       discount: discount,
-      surl: "http://localhost:3000/api/order/payment-success",
-      furl: "http://localhost:3000/api/order/payment-failure",
+      surl: payuConfig.successUrl,
+      furl: payuConfig.failureUrl,
       udf1: payuConfig.udf1,
       udf2: payuConfig.udf2,
       udf3: payuConfig.udf3,
@@ -317,7 +318,7 @@ const paymentSuccess = async (req, res) => {
 
       // Generate order token ID and redirect
       res.redirect(
-        `http://localhost:5173/checkout/order-received/?orderId=${order?.orderId}`
+        `https://www.sabhyasha.com/checkout/order-received/?orderId=${order?.orderId}`
       );
     } else {
       console.log(
@@ -421,7 +422,7 @@ const paymentFailure = async (req, res) => {
 
     // Redirect the user to the payment failure page
     res.redirect(
-      `http://localhost:5173/checkout/order-received?orderId=${order?.orderId}`
+      `${process.env.DOMAIN}/checkout/order-received?orderId=${order?.orderId}`
     );
   } catch (err) {
     console.error("Error processing payment failure:", err);
@@ -432,9 +433,7 @@ const paymentFailure = async (req, res) => {
 const getOrderSummaryAfterPay = async (req, res) => {
   try {
     const orderId = req.query.orderId;
-
-
-
+    console.log(orderId)
 
     if (!orderId) {
       return res
@@ -448,6 +447,12 @@ const getOrderSummaryAfterPay = async (req, res) => {
     if (!orderDetails) {
       return res.status(404).json({ success: false, error: "Order not found" });
     }
+
+    console.log({
+      success: true,
+      orderDetails,
+      orderPaymentStatus: orderDetails?.paymentStatus,
+    });
 
     return res.status(200).json({
       success: true,
