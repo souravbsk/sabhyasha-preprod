@@ -316,7 +316,6 @@ const paymentSuccess = async (req, res) => {
       // Commit the transaction
       await session.commitTransaction();
 
-      // Generate order token ID and redirect
       res.redirect(
         `${process.env.DOMAIN}/checkout/order-received/?orderId=${order?.orderId}`
       );
@@ -433,7 +432,7 @@ const paymentFailure = async (req, res) => {
 const getOrderSummaryAfterPay = async (req, res) => {
   try {
     const orderId = req.query.orderId;
-    console.log(orderId)
+    console.log(orderId);
 
     if (!orderId) {
       return res
@@ -492,25 +491,118 @@ const getOrderStatus = async (req, res) => {
   }
 };
 
-const sendEmailUser = async (req, res) => {
-  try {
-    const to = "souravbsk01@gmail.com";
-    const subject = "test-email";
-    const body = {
-      text: "hello world",
-    };
+// const sendEmailUser = async (req, res) => {
+//   try {
+//     const to = "souravbsk01@gmail.com";
+//     const subject = "test-email";
+//     const body = {
+//       text: "hello world",
+//     };
 
-    const result = await sendMail(to, subject, body);
-    console.log(result);
-    res.send("hello");
+//     const result = await sendMail(to, subject, body);
+//     console.log(result);
+//     res.send("hello");
+//   } catch (error) {
+//     console.error("Error fetching order summary:", error);
+//     if (error?.error === "Unauthorized access") {
+//       return res.status(401).json(error);
+//     }
+//     return res
+//       .status(500)
+//       .json({ success: false, error: "Failed to process payment success" });
+//   }
+// };
+
+//order controller for user panel
+const getUserOrderHistory = async (req, res) => {
+  try {
+    const email = "sb07008@gmail.com";
+
+    // Define the aggregation pipeline
+    const pipeline = [
+      // Match OrderHistory by email
+      {
+        $match: {
+          email: email,
+        },
+      },
+      // Lookup to join with Order collection
+      {
+        $lookup: {
+          from: "orders", // The name of the Order collection
+          localField: "orderId",
+          foreignField: "_id", // Assuming orderId in OrderHistory matches _id in Order
+          as: "orderDetails",
+        },
+      },
+      // Unwind the orders array to deconstruct the array elements
+      {
+        $unwind: {
+          path: "$orderDetails",
+          preserveNullAndEmptyArrays: true, // If there are OrderHistory entries with no matching orders
+        },
+      },
+      // Lookup to join with OrderShippingStatus collection
+      {
+        $lookup: {
+          from: "orderShippingStatus", // The name of the OrderShippingStatus collection
+          localField: "shippingStatusId",
+          foreignField: "_id", // Assuming shippingStatusId in OrderHistory matches _id in OrderShippingStatus
+          as: "shippingStatusDetails",
+        },
+      },
+      // Unwind the shipping status array to deconstruct the array elements
+      {
+        $unwind: {
+          path: "$shippingStatusDetails",
+          preserveNullAndEmptyArrays: true, // If there are OrderHistory entries with no matching shipping status
+        },
+      },
+      // Project specific fields
+      {
+        $project: {
+          _id: 1,
+          orderId: 1,
+          email: 1,
+          paymentTransactionId: 1,
+
+          "orderDetails._id": 1, // Include all other fields from orderDetails
+          "orderDetails.orderId": 1, // Include all other fields from orderDetails
+          "orderDetails.invoice_prefix": 1, // Include all other fields from orderDetails
+          "orderDetails.email": 1, // Include all other fields from orderDetails
+          "orderDetails.products": 1, // Include all other fields from orderDetails
+          "orderDetails.billingAddress": 1, // Include all other fields from orderDetails
+          "orderDetails.paymentInfo": 1, // Include all other fields from orderDetails
+          "orderDetails.shippingAddress": 1, // Include all other fields from orderDetails
+          "orderDetails.amount": 1, // Include all other fields from orderDetails
+          "orderDetails.subTotal": 1, // Include all other fields from orderDetails
+          "orderDetails.discountAmount": 1, // Include all other fields from orderDetails
+          "orderDetails.couponAmount": 1, // Include all other fields from orderDetails
+          "orderDetails.status": 1, // Include all other fields from orderDetails
+          "orderDetails.paymentStatus": 1, // Include all other fields from orderDetails
+          "orderDetails.trackingNumber": 1, // Include all other fields from orderDetails
+          "orderDetails.orderNotes": 1, // Include all other fields from orderDetails
+          "orderDetails.orderDate": 1, // Include all other fields from orderDetails
+          "orderDetails.invoice_no": 1, // Include all other fields from orderDetails
+          shippingStatusDetails: 1, // Include shipping status details
+        },
+      },
+    ];
+
+    // Execute the aggregation pipeline using Mongoose
+    const orderHistoryWithOrdersAndShippingStatus =
+      await OrderHistory.aggregate(pipeline);
+
+    // Respond with the results
+    res
+      .status(200)
+      .json({ success: true, data: orderHistoryWithOrdersAndShippingStatus });
   } catch (error) {
-    console.error("Error fetching order summary:", error);
-    if (error?.error === "Unauthorized access") {
-      return res.status(401).json(error);
-    }
-    return res
-      .status(500)
-      .json({ success: false, error: "Failed to process payment success" });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching order history.",
+    });
   }
 };
 
@@ -520,5 +612,6 @@ module.exports = {
   paymentFailure,
   getOrderSummaryAfterPay,
   getOrderStatus,
-  sendEmailUser,
+  // sendEmailUser,
+  getUserOrderHistory,
 };
