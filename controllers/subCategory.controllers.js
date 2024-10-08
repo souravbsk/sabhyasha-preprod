@@ -10,6 +10,12 @@ const createSubCategory = async (req, res) => {
   try {
     const { name, parentCategoryId, productCategoryId } = req.body;
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     const imageURLs = await uploadToS3("SubCategory")(req, res, async () => {
       try {
         const existingSlugs = await SubCategory.find({}).distinct("slug");
@@ -21,6 +27,7 @@ const createSubCategory = async (req, res) => {
           productCategoryId: new mongoose.Types.ObjectId(productCategoryId),
           image: req.fileUrls[0],
           slug: generateSlugUrl,
+          created_by: userEmail, // user checker
         };
 
         const insertedSubCategory = new SubCategory(subCategoryData);
@@ -94,7 +101,7 @@ const updateSubCategoryById = async (req, res) => {
       return res.status(400).json({ error: "Subcategory ID is required" });
     }
 
-    const { name, parentCategoryId, productCategoryId,images } = req.body;
+    const { name, parentCategoryId, productCategoryId, images } = req.body;
     const updatedAt = new Date();
 
     let imageURL;
@@ -116,6 +123,7 @@ const updateSubCategoryById = async (req, res) => {
     if (parentCategoryId) updateData.parentCategoryId = parentCategoryId;
     if (productCategoryId) updateData.productCategoryId = productCategoryId;
     if (imageURL) updateData.image = imageURL;
+    if (userEmail) updateData.updated_by = userEmail;
 
     const result = await SubCategory.findByIdAndUpdate(
       subcategoryId,

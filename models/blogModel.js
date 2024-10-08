@@ -23,6 +23,14 @@ const blogModel = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "categories",
   },
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+  updated_by: {
+    type: String,
+    ref: "users",
+  },
   tags: [String],
   author: {
     type: mongoose.Schema.Types.ObjectId,

@@ -36,6 +36,15 @@ const productCategoryModel = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+
+  updated_by: {
+    type: String,
+    ref: "users",
+  },
 });
 
 productCategoryModel.pre("save", function (next) {
@@ -43,6 +52,10 @@ productCategoryModel.pre("save", function (next) {
   next();
 });
 
-const productCategory = mongoose.model("productCategory", productCategoryModel,"productCategory");
+const productCategory = mongoose.model(
+  "productCategory",
+  productCategoryModel,
+  "productCategory"
+);
 
 module.exports = { productCategory };

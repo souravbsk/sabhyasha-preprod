@@ -1,11 +1,28 @@
 const { default: mongoose } = require("mongoose");
 const { categories } = require("../models/blogCategoryModel");
 const { slugGenerator } = require("../utlis/slugGenerate");
+const { users } = require("../models/userModel");
 
 const createCategory = async (req, res) => {
   try {
     const { name, description, type } = req.body;
-    console.log(req.body);
+
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+
+    const existingUser = await users.findOne(
+      { email: userEmail, role: "admin" },
+      "email avatar username role" // Specify fields to include
+    );
+
+    if (!existingUser) {
+      res.status(404).json({ success: false, message: "admin not found" });
+    }
+
+    // user checker end
+
     const existingCategory = await categories.findOne({ name });
     if (existingCategory) {
       return res
@@ -22,7 +39,7 @@ const createCategory = async (req, res) => {
     const newBlogCategory = new categories({
       name,
       description,
-      // author: mongoose.Types.ObjectId(author),
+      created_by: userEmail,
       type,
       slug: generateSlugUrl,
     });
@@ -49,7 +66,7 @@ const getAllCategories = async (req, res) => {
   try {
     console.log("first");
     const categoriesList = await categories.find({});
-  
+
     console.log(categoriesList);
 
     if (!categoriesList.length) {
@@ -102,6 +119,22 @@ const updateCategoryById = async (req, res) => {
     const { name, description, type, author } = req.body;
     const updatedAt = new Date();
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+
+    const existingUser = await users.findOne(
+      { email: userEmail, role: "admin" },
+      "email avatar username role" // Specify fields to include
+    );
+
+    if (!existingUser) {
+      res.status(404).json({ success: false, message: "admin not found" });
+    }
+
+    // user checker end
+
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({ error: "Invalid category ID" });
@@ -120,6 +153,7 @@ const updateCategoryById = async (req, res) => {
           description,
           type,
           updatedAt,
+          updated_by: userEmail,
           slug: generateSlugUrl,
           author: new mongoose.Types.ObjectId(author),
         },
@@ -150,8 +184,8 @@ const deleteCategoryById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({ error: "Invalid category ID" });
     }
-    const categoryCollection = mongoose.connection.db.collection('categories');
-    console.log(categoryCollection, "fsdsad")
+    const categoryCollection = mongoose.connection.db.collection("categories");
+    console.log(categoryCollection, "fsdsad");
     // Delete the category from the database
     const result = await categories.deleteOne({
       _id: new mongoose.Types.ObjectId(categoryId),
@@ -171,10 +205,6 @@ const deleteCategoryById = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
-
 
 module.exports = {
   createCategory,

@@ -13,6 +13,13 @@ const createCoupon = async (req, res) => {
       maxUsageCount,
     } = req.body;
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
+    console.log(userEmail, "created by")
     const parsedActiveDate = new Date(activeDate);
     const parsedExpiryDate = new Date(expiryDate);
 
@@ -26,6 +33,7 @@ const createCoupon = async (req, res) => {
       expiryDate: parsedExpiryDate,
       maxUsageCount,
       status: "pending",
+      created_by: userEmail,
       usedBy: [],
     });
 
@@ -76,12 +84,19 @@ const updateCouponById = async (req, res) => {
       maxUsageCount,
     } = req.body;
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     const updateData = {
       code,
       description,
       type,
       discountAmount: discountAmount && Number(discountAmount),
       minCartAmount,
+      updated_by: userEmail,
       maxUsageCount,
       updatedAt: Date.now(), // Ensure updatedAt is also updated
     };
@@ -132,6 +147,12 @@ const updateCouponStatusById = async (req, res) => {
     const { status } = req.body;
     console.log(status, couponId, "fsfsdf");
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     // Ensure status is a valid enum value
     const validStatuses = ["approved", "pending", "disapproved"];
     if (!validStatuses.includes(status)) {
@@ -140,7 +161,7 @@ const updateCouponStatusById = async (req, res) => {
 
     const result = await coupons.findByIdAndUpdate(
       couponId,
-      { $set: { status, updatedAt: Date.now() } }, // Ensure updatedAt is also updated
+      { $set: { status, updated_by: userEmail, updatedAt: Date.now() } }, // Ensure updatedAt is also updated
       { new: true } // Return the updated document
     );
 
@@ -196,7 +217,7 @@ const getUserAllCoupons = async (req, res) => {
       .select("-activeDate") // Exclude type and activeDate fields
       .lean(); // Convert Mongoose documents to plain JavaScript objects
 
-      console.log(couponsData,'fdsfsdfsdf')
+    console.log(couponsData, "fdsfsdfsdf");
     if (!couponsData || couponsData.length === 0) {
       return res.status(404).json({ error: "No valid coupons found" });
     }

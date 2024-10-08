@@ -16,6 +16,7 @@ app.use((req, res, next) => {
     "https://www.sabhyasha.com",
     "https://sabhyasha.com",
     "http://localhost:5173",
+    "http://localhost:3000",
     "https://api.sabhyasha.com",
   ];
 
@@ -36,7 +37,7 @@ app.use((req, res, next) => {
     );
     res.header(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST,PATCH, PUT, DELETE, OPTIONS"
     );
     res.header("Access-Control-Allow-Credentials", "true");
   }

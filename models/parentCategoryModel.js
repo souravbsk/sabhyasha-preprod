@@ -30,6 +30,16 @@ const parentCategoryModel = new mongoose.Schema({
     required: true,
     unique: true,
   },
+
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+
+  updated_by: {
+    type: String,
+    ref: "users",
+  },
 });
 
 parentCategoryModel.pre("save", function (next) {

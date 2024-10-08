@@ -7,6 +7,10 @@ const blogCategoryModel = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now(),
+  },
   type: String,
   updatedAt: {
     type: Date,
@@ -15,6 +19,15 @@ const blogCategoryModel = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Admin",
+  },
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+
+  updated_by: {
+    type: String,
+    ref: "users",
   },
   slug: {
     type: String,

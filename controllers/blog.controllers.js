@@ -7,6 +7,7 @@ const { categories } = require("../models/blogCategoryModel");
 const { default: slugify } = require("slugify");
 const { blogs } = require("../models/blogModel");
 const { blogComments } = require("../models/blogCommentModel");
+const { users } = require("../models/userModel");
 
 const createBlog = async (req, res) => {
   console.log(req);
@@ -22,6 +23,13 @@ const createBlog = async (req, res) => {
     } = req.body;
     const tagsArray = tags ? tags.split(",") : [];
     const createdAt = new Date();
+
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     const imageURLs = await uploadToS3("Blog")(req, res, async () => {
       try {
         const featureImage = {
@@ -37,6 +45,7 @@ const createBlog = async (req, res) => {
           title,
           description,
           // author: mongoose.Types.ObjectId(author),
+          created_by: userEmail,
           category,
           tags: tagsArray,
           featureImage,
@@ -126,7 +135,7 @@ const getAllBlogs = async (req, res) => {
 };
 
 const updateBlogById = async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   try {
     const blogId = req.params.blogId;
     const {
@@ -143,6 +152,12 @@ const updateBlogById = async (req, res) => {
     const tagsArray = tags ? tags.split(",") : [];
     const updatedAt = new Date();
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     let imageURL;
     if (image) {
       imageURL = image;
@@ -151,7 +166,7 @@ const updateBlogById = async (req, res) => {
       imageURL = req.fileUrls[0];
     }
 
-    const updateFields = { updatedAt };
+    const updateFields = { updatedAt, updated_by: userEmail };
     if (title) updateFields.title = title;
     if (description) updateFields.description = description;
     if (author) updateFields.author = author;

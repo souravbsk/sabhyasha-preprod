@@ -11,6 +11,15 @@ const createProductCategory = async (req, res) => {
     const { name, parentCategoryId, isCustomizable, selectedFields } = req.body;
     const selectedFieldsParse = JSON.parse(selectedFields);
 
+/* The code snippet you provided is checking for the presence of a decoded token in the request object.
+It is attempting to extract the email address from the decoded token and assigning it to the
+`userEmail` variable. */
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     // Upload image to S3 and await the result
     const imageURLs = await uploadToS3("ProductCategory")(req, res);
     const existingSlugs = await productCategory.find({}).distinct("slug");
@@ -27,6 +36,7 @@ const createProductCategory = async (req, res) => {
       isCustomizable: isCustomizable && JSON.parse(isCustomizable),
       selectedFields: selectedFieldsParse,
       slug: generateSlugUrl,
+      created_by: userEmail,
     });
 
     // Save the new category to the database
@@ -113,6 +123,11 @@ const updateProductCategoryById = async (req, res) => {
       req.body;
     const selectedFieldsParse = JSON.parse(selectedFields);
     const updatedAt = new Date();
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
 
     // Check if images were provided, else handle file upload
     let imageURL;
@@ -137,6 +152,8 @@ const updateProductCategoryById = async (req, res) => {
           image: imageURL,
           isCustomizable: isCustomizable && JSON.parse(isCustomizable),
           selectedFields: selectedFieldsParse,
+          updated_by: userEmail, // user checker start
+
         },
       },
       { new: true }
@@ -286,7 +303,7 @@ const getAllCategoryForShop = async (req, res) => {
     // Aggregate product counts for each category
     const productCounts = await Product.aggregate([
       {
-        $match: { category_id: { $ne: null } } // Filter out documents with null category_id
+        $match: { category_id: { $ne: null } }, // Filter out documents with null category_id
       },
       {
         $group: {
@@ -330,17 +347,19 @@ const getAllCategoryForShop = async (req, res) => {
         },
       },
       {
-        $sort: { productCount: -1 }, 
+        $sort: { productCount: -1 },
       },
       {
-        $limit: parseInt(productCategoryLength, 10), 
+        $limit: parseInt(productCategoryLength, 10),
       },
     ]);
 
     res.status(200).json(categoryCollection);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error", errorMessage: error });
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", errorMessage: error });
   }
 };
 

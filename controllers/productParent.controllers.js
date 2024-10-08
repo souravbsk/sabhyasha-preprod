@@ -8,6 +8,12 @@ const createParentCategory = async (req, res) => {
   try {
     const { name } = req.body;
 
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
+
     // Upload image to S3 and await the result
     const imageURLs = await uploadToS3("ParentCategory")(req, res);
     const imageURL = req.fileUrls[0];
@@ -20,6 +26,7 @@ const createParentCategory = async (req, res) => {
       name,
       createdAt: new Date(),
       image: imageURL,
+      created_by: userEmail,
       slug: generateSlugUrl,
     });
 
@@ -63,7 +70,6 @@ const getAllParentCategories = async (req, res) => {
   }
 };
 
-
 //update parent category
 
 const updateParentCategoryById = async (req, res) => {
@@ -71,6 +77,12 @@ const updateParentCategoryById = async (req, res) => {
     const categoryId = req.params.categoryId;
     const { name, image } = req.body;
     const updatedAt = new Date();
+
+    // user checker start
+    const decoded = req.decoded;
+
+    const userEmail = decoded?.email;
+    // user checker end
 
     let imageURL;
     if (image) {
@@ -85,7 +97,7 @@ const updateParentCategoryById = async (req, res) => {
     const updatedCategory = await productParentCategory.findByIdAndUpdate(
       categoryId,
       {
-        $set: { name, updatedAt, image: imageURL },
+        $set: { name, updatedAt, image: imageURL, updated_by: userEmail },
       },
       { new: true } // To return the updated document
     );
@@ -129,8 +141,6 @@ const deleteParentCategoryById = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
 
 module.exports = {
   createParentCategory,

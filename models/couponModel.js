@@ -14,11 +14,15 @@ const couponModel = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-  // author: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Admin",
-  //   required: true,
-  // },
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+
+  updated_by: {
+    type: String,
+    ref: "users",
+  },
   usedBy: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +41,7 @@ const couponModel = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ["percentage", "amount"],
+    enum: ["percentage", "amount","fixed"],
   },
   discountAmount: {
     type: Number,

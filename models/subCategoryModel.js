@@ -30,6 +30,16 @@ const subCategoryModel = new mongoose.Schema({
     required: true,
     unique: true,
   },
+
+  created_by: {
+    type: String,
+    ref: "users",
+  },
+
+  updated_by: {
+    type: String,
+    ref: "users",
+  },
 });
 
 subCategoryModel.pre("save", function (next) {
