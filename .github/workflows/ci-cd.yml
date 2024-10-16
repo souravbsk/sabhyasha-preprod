@@ -44,6 +44,10 @@ jobs:
           # Write the service account key to a file
           echo "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcp-key.json
           chmod 600 ${HOME}/gcp-key.json  # Ensure the file has the correct permissions
+          
+          # Debug: Print the contents of the service account key file
+          cat ${HOME}/gcp-key.json
+          
           gcloud auth activate-service-account --key-file ${HOME}/gcp-key.json
           gcloud config set project $GCP_PROJECT_ID
           gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
