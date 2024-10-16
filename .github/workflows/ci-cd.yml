@@ -44,4 +44,4 @@ jobs:
           echo "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcp-key.json
           gcloud auth activate-service-account --key-file ${HOME}/gcp-key.json
           gcloud config set project $GCP_PROJECT_ID
-          gcloud compute ssh your-username@your-instance --zone your-zone --command "cd /path/to/your/app && git pull && npm install && pm2 restart your_app.js"
+          gcloud compute ssh your-username@your-instance --zone your-zone --command "cd /path/to/your/app && git pull && npm install && pm2 restart index.js"
