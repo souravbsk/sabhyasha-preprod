@@ -39,16 +39,10 @@ jobs:
       - name: Deploy to GCP
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}  # Set this in GitHub Secrets
-          GCP_SSH_PRIVATE_KEY: ${{ secrets.GCP_SSH_PRIVATE_KEY }}  # Add this secret
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcp-key.json
+          # Write the service account key to a file
+          echo "${{ secrets.GCP_SA_KEY }}" | jq . > ${HOME}/gcp-key.json
           gcloud auth activate-service-account --key-file ${HOME}/gcp-key.json
           gcloud config set project $GCP_PROJECT_ID
-
-          # Set up SSH private key
-          echo "${GCP_SSH_PRIVATE_KEY}" > ${HOME}/gcp_key
-          chmod 600 ${HOME}/gcp_key
-
-          # Connect to the instance and deploy
-          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
+          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
