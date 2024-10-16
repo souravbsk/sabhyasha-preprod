@@ -51,4 +51,4 @@ jobs:
           chmod 600 ${HOME}/gcp_key
 
           # Connect to the instance and deploy
-          gcloud compute ssh sasank_patra@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
+          gcloud compute ssh sasank.patra@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
