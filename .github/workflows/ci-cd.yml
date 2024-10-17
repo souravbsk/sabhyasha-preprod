@@ -31,14 +31,20 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       
       
+      - name: Setup SSh
+        run: |
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ${HOME}/gcp_key
+          chmod 600 ${HOME}/gcp_key
+          # Optionally, you can echo the public key if needed
+          echo "${{ secrets.GCP_SSH_PUBLIC_KEY }}" > ${HOME}/gcp_key.pub
+          chmod 644 ${HOME}/gcp_key.pub
+      
       - name: Deploy to GCP
         run: |
-           echo "${GCP_SSH_PRIVATE_KEY}" > ${HOME}/gcp_key
-           chmod 600 ${HOME}/gcp_key
-
-           gcloud compute ssh sasank_patra@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
-
+          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js" -- -o StrictHostKeyChecking=no
+        
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           GCP_SSH_PRIVATE_KEY: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          GCP_SSH_PUBLIC_KEY: ${{ secrets.GCP_SSH_PUBLIC_KEY }}
