@@ -36,7 +36,7 @@ jobs:
            echo "${GCP_SSH_PRIVATE_KEY}" > ${HOME}/gcp_key
            chmod 600 ${HOME}/gcp_key
 
-           gcloud compute ssh sasank.patra@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
+           gcloud compute ssh sasank_patra@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
 
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
