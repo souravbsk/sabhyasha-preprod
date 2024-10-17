@@ -161,8 +161,6 @@ app.use("/api/checkout", checkoutRoute);
 // payment api
 app.use("/api/order", orderRoute);
 
-const keyPairs = generateKeyPairs();
-console.log(keyPairs, "key pairs");
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);

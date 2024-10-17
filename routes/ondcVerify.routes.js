@@ -2,6 +2,7 @@ const {
   serveVerificationFile,
   healthCheck,
   onSubscribe,
+  handleCallback,
 } = require("../controllers/ondcVerify.controllers.js");
 
 const ondcVerifyRoute = require("express").Router();
@@ -11,5 +12,5 @@ const ondcVerifyRoute = require("express").Router();
 ondcVerifyRoute.post("/on_subscribe", onSubscribe);
 ondcVerifyRoute.get("/ondc-site-verification.html", serveVerificationFile);
 ondcVerifyRoute.get("/health", healthCheck);
-
+ondcVerifyRoute.post("/callback", handleCallback);
 module.exports = { ondcVerifyRoute };
