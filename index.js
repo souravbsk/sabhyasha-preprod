@@ -13,50 +13,50 @@ const fs = require("fs");
 
 require("dotenv").config();
 
-app.use((req, res, next) => {
-  const corsWhitelist = [
-    "https://www.sabhyasha.com",
-    "https://sabhyasha.com",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://api.sabhyasha.com",
-  ];
+// app.use((req, res, next) => {
+//   const corsWhitelist = [
+//     "https://www.sabhyasha.com",
+//     "https://sabhyasha.com",
+//     "http://localhost:5173",
+//     "http://localhost:3000",
+//     "https://api.sabhyasha.com",
+//   ];
 
-  const origin = req.headers.origin;
+//   const origin = req.headers.origin;
 
-  // Check if origin is in the whitelist or matches regex for PayU domains
-  const isAllowedOrigin =
-    corsWhitelist.includes(origin) ||
-    /\.payu\.in$/.test(origin) || // Check regex for PayU domains
-    /\.payubiz\.in$/.test(origin);
+//   // Check if origin is in the whitelist or matches regex for PayU domains
+//   const isAllowedOrigin =
+//     corsWhitelist.includes(origin) ||
+//     /\.payu\.in$/.test(origin) || // Check regex for PayU domains
+//     /\.payubiz\.in$/.test(origin);
 
-  // Allow requests from whitelisted origins
-  if (isAllowedOrigin) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST,PATCH, PUT, DELETE, OPTIONS"
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
-  }
+//   // Allow requests from whitelisted origins
+//   if (isAllowedOrigin) {
+//     res.header("Access-Control-Allow-Origin", origin);
+//     res.header(
+//       "Access-Control-Allow-Headers",
+//       "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//     );
+//     res.header(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST,PATCH, PUT, DELETE, OPTIONS"
+//     );
+//     res.header("Access-Control-Allow-Credentials", "true");
+//   }
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200); // Preflight request
-  }
+//   if (req.method === "OPTIONS") {
+//     return res.sendStatus(200); // Preflight request
+//   }
 
-  next();
-});
+//   next();
+// });
 
-// app.use(
-//   cors({y
-//     origin: "*", // Allow all origins
-//     // credentials: true, // Allow cookies or credentials to be sent
-//   })
-// );
+app.use(
+  cors({
+    origin: "*", // Allow all origins
+    credentials: true, // Allow cookies or credentials to be sent
+  })
+);
 
 app.use(express.json());
 app.use(bodyParser.json({ limit: "100mb" }));
