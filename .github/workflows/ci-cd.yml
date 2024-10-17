@@ -29,9 +29,13 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      
       - name: Deploy to GCP
         run: |
+          gcloud config set compute/ssh_key ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_SSH_PRIVATE_KEY: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
