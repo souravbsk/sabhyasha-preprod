@@ -28,8 +28,7 @@ jobs:
       - name: Configure GCP Authentication
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: |
-            $(cat gcp-key.json)
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: Deploy to GCP
         run: |
           gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
