@@ -1,0 +1,52 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure GCP Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      
+      - name: Setup SSh
+        run: |
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ${HOME}/gcp_key
+          chmod 600 ${HOME}/gcp_key
+          # Optionally, you can echo the public key if needed
+          echo "${{ secrets.GCP_SSH_PUBLIC_KEY }}" > ${HOME}/gcp_key.pub
+          chmod 644 ${HOME}/gcp_key.pub
+      
+      - name: Deploy to GCP
+        run: |
+          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --ssh-key-file=${HOME}/gcp_key --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js" -- -o StrictHostKeyChecking=no
+          cat <<EOT > .env
+          SECRET_KEY=${{ vars.SECRET_KEY }}
+
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_SSH_PRIVATE_KEY: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          GCP_SSH_PUBLIC_KEY: ${{ secrets.GCP_SSH_PUBLIC_KEY }}
