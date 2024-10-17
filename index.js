@@ -51,12 +51,7 @@ require("dotenv").config();
 //   next();
 // });
 
-app.use(
-  cors({
-    origin: "*", // Allow all origins
-    credentials: true, // Allow cookies or credentials to be sent
-  })
-);
+app.use(cors());
 
 app.use(express.json());
 app.use(bodyParser.json({ limit: "100mb" }));
@@ -76,7 +71,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 require("./middlewares/passport.config.js");
-
 
 const { ondcVerifyRoute } = require("./routes/ondcVerify.routes.js");
 const { blogRoute } = require("./routes/blog.routes");
@@ -115,7 +109,7 @@ app.get("/", (req, res) => {
 
 // ondc on subscribe route start
 
-app.use("/ondc", ondcVerifyRoute);
+
 // ondc on subscribe route end
 
 //blog api start
@@ -160,6 +154,9 @@ app.use("/api/checkout", checkoutRoute);
 
 // payment api
 app.use("/api/order", orderRoute);
+
+
+
 
 
 app.listen(process.env.PORT || 3000, () => {
