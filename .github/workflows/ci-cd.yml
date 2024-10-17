@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Change this if your main branch is named differently
+      - main
   pull_request:
     branches:
       - main
@@ -11,43 +11,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          node-version: '22'  # Specify your Node.js version
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test  # Adjust this if you have different test commands
+          node-version: '22'
+      - run: npm install
+      - run: npm test
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Ensures the build job is completed before deploying
-    if: github.ref == 'refs/heads/main'  # Only deploy on main branch
-
+    needs: build
+    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
+      - uses: actions/checkout@v2
+      - name: Configure GCP Authentication
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: |
+            $(cat gcp-key.json)
       - name: Deploy to GCP
+        run: |
+          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}  # Ensure this is set in GitHub Secrets
-        run: |
-          # Write the service account key to a file
-          echo "${{ secrets.GCP_SA_KEY }}" > ${HOME}/gcp-key.json
-          chmod 600 ${HOME}/gcp-key.json  # Ensure the file has the correct permissions
-          
-          # Debug: Print the contents of the service account key file
-          cat ${HOME}/gcp-key.json
-          
-          gcloud auth activate-service-account --key-file ${HOME}/gcp-key.json
-          gcloud config set project $GCP_PROJECT_ID
-          gcloud compute ssh vineet@instance-preprod --zone asia-south2-c --command "cd /home/vineet/SabhyashaPreProd && git pull && npm install && pm2 restart index.js"
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
