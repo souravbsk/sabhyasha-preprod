@@ -8,6 +8,8 @@ const session = require("express-session");
 const bodyParser = require("body-parser");
 const { connectDB } = require("./utlis/connectDB");
 const cookieParser = require("cookie-parser");
+const crypto = require("crypto"); // Node.js crypto module for encryption and decryption
+const fs = require("fs");
 
 require("dotenv").config();
 
@@ -75,6 +77,8 @@ app.use(passport.session());
 
 require("./middlewares/passport.config.js");
 
+
+const { ondcVerifyRoute } = require("./routes/ondcVerify.routes.js");
 const { blogRoute } = require("./routes/blog.routes");
 const { blogCategoryRoute } = require("./routes/blogCategory.routes.js");
 const { blogCommentRoute } = require("./routes/blogComment.routes.js");
@@ -96,11 +100,24 @@ const { wishListRouter } = require("./routes/wishlist.routes.js");
 const { userRouter } = require("./routes/user.routes.js");
 const { checkoutRoute } = require("./routes/cheackout.routes.js");
 const { orderRoute } = require("./routes/order.routes.js");
+const { generateKeyPairs } = require("./utlis/ondcSigningKeyGenarate.js");
+const {
+  signMessage,
+  decryptAES256ECB,
+} = require("./services/cryptography.service.js");
 
 connectDB();
 app.get("/", (req, res) => {
   res.send("Hello World from server list deploy with github pipline  ");
 });
+
+// Route for serving a verification file
+
+// ondc on subscribe route start
+
+app.use("/ondc", ondcVerifyRoute);
+// ondc on subscribe route end
+
 //blog api start
 app.use("/api/blog", blogRoute);
 app.use("/api/category", blogCategoryRoute);
@@ -143,6 +160,9 @@ app.use("/api/checkout", checkoutRoute);
 
 // payment api
 app.use("/api/order", orderRoute);
+
+const keyPairs = generateKeyPairs();
+console.log(keyPairs, "key pairs");
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);
