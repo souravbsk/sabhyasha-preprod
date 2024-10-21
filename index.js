@@ -156,7 +156,7 @@ app.use("/api/checkout", checkoutRoute);
 app.use("/api/order", orderRoute);
 
 
-app.use("/api/ondc", ondcVerifyRoute);
+app.use("/", ondcVerifyRoute);
 
 
 
