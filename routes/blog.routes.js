@@ -21,6 +21,6 @@ blogRoute.get("/category/:slug", getBlogByCategory); // get blogs by category
 blogRoute.get("/:slug", getBlogById); // get blog by slug
 blogRoute.put("/:blogId", verifyJwt, verifyAdmin, upload.any(), updateBlogById); // update blog
 blogRoute.delete("/:blogId", verifyJwt, verifyAdmin, removeBlog); // remove blog
-blogRoute.delete("/test",testRoute); // remove blog
+blogRoute.get("/test",testRoute); // remove blog
 
 module.exports = { blogRoute };
