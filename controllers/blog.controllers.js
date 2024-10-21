@@ -289,95 +289,6 @@ const getBlogByCategory = async (req, res) => {
   }
 };
 
-// const getBlogsByCategory = async (req, res) => {
-//   try {
-//     const { slug } = req.params;
-
-//     // Aggregation pipeline to find blogs by category slug
-//     const blogsByCategory = await blogs.aggregate([
-//       {
-//         $lookup: {
-//           from: "categories", // Collection name
-//           localField: "category",
-//           foreignField: "_id",
-//           as: "category",
-//         },
-//       },
-//       {
-//         $match: {
-//           "category.slug": slug,
-//         },
-//       },
-//       {
-//         $project: {
-//           title: 1,
-//           description: 1,
-//           featureImage: 1,
-//           createdAt: 1,
-//           updatedAt: 1,
-//           tags: 1,
-//           author: 1,
-//           slug: 1,
-//           category: { $arrayElemAt: ["$category", 0] },
-//         },
-//       },
-//     ]);
-
-//     res.status(200).send({ success: true, data: blogsByCategory });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send({ success: false, message: "Something went wrong!" });
-//   }
-// };
-
-// const viewBlog = async (req, res) => {
-//   try {
-//     const { slug } = req.params;
-
-//     // Aggregation pipeline to find a single blog by slug
-//     const blog = await blogs.aggregate([
-//       {
-//         $match: {
-//           slug: slug,
-//         },
-//       },
-//       {
-//         $lookup: {
-//           from: "categories", // Collection name
-//           localField: "category",
-//           foreignField: "_id",
-//           as: "category",
-//         },
-//       },
-//       {
-//         $project: {
-//           title: 1,
-//           description: 1,
-//           featureImage: 1,
-//           createdAt: 1,
-//           updatedAt: 1,
-//           tags: 1,
-//           author: 1,
-//           slug: 1,
-//           category: { $arrayElemAt: ["$category", 0] },
-//         },
-//       },
-//     ]);
-
-//     // If blog not found, return 404
-//     if (blog.length === 0) {
-//       return res
-//         .status(404)
-//         .send({ success: false, message: "Blog not found!" });
-//     }
-
-//     res.status(200).send({ success: true, data: blog[0] });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send({ success: false, message: "Something went wrong!" });
-//   }
-// };
-
 const removeBlog = async (req, res) => {
   try {
     const { blogId } = req.params;
@@ -397,6 +308,15 @@ const removeBlog = async (req, res) => {
   }
 };
 
+const testRoute = async (req, res) => {
+  try {
+    res.send("test successful");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createBlog,
   getAllBlogs,
@@ -404,4 +324,5 @@ module.exports = {
   updateBlogById,
   removeBlog,
   getBlogById,
+  testRoute,
 };
