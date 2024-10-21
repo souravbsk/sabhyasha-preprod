@@ -104,6 +104,9 @@ connectDB();
 app.get("/", (req, res) => {
   res.send("Hello World from server list deploy with github pipline  ");
 });
+app.get("/test", (req, res) => {
+  res.send("Hello World from server test list deploy with github pipline  ");
+});
 
 // Route for serving a verification file
 
