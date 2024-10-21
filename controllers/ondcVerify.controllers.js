@@ -81,10 +81,9 @@ function healthCheck(req, res) {
 const handleCallback = (req, res) => {
   try {
     const callbackData = req.body; // Extract callback data from the request
-    // Process the callback data (e.g., update subscription status, handle errors, etc.)
 
     // Example: Log the callback data
-    console.log("Received ONDC callback:", callbackData);
+    console.log("Received ONDC callback: error", callbackData);
 
     // Send a response back to ONDC
     res.status(200).json({ message: "Callback received successfully" });
