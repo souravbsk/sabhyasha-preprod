@@ -58,7 +58,6 @@ const onSubscribe = async (req, res) => {
 const serveVerificationFile = async (req, res) => {
   try {
     const signedContent = await signMessage(REQUEST_ID, SIGNING_PRIVATE_KEY);
-    // Replace the placeholder with the actual value
     const htmlFile = fs.readFileSync(
       "../views/ondc-site-verification.html",
       "utf-8"
