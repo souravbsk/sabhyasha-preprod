@@ -310,6 +310,7 @@ const removeBlog = async (req, res) => {
 
 const testRoute = async (req, res) => {
   try {
+    console.log('df')
     res.send("test successful");
   } catch (error) {
     console.error(error);
